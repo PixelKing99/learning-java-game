@@ -10,10 +10,10 @@ public class App {
 		frame.setResizable(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		Game testGame = new Game();
-		frame.add(testGame);
+		Game game = new Game();
+		frame.add(game);
 		frame.pack();
-		testGame.requestFocus();
+		game.requestFocus();
 		frame.setVisible(true);
 	}
 }

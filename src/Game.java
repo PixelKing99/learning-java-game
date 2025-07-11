@@ -11,27 +11,22 @@ public class Game extends JPanel implements ActionListener, KeyListener {
 	
 	public static final char[] directions = {'U', 'D', 'L', 'R'};
 	
-	public static final int xDisplayOffset = 0;
-	public static final int yDisplayOffset = 0;
-	
 	public static final int spacing = 20;
-	public static final int imageSize = 100;
-	public static final int maxVel = imageSize - 1;
-	public final static int accel = maxVel / 40;
+	public static int imageSize = 100;
+	public static int maxVel = imageSize - 1;
+	public static int accel = maxVel / 40;
 
 	private final Image lava = new ImageIcon(getClass().getResource("./resources/lava.png")).getImage();
 	private final Image pog = new ImageIcon(getClass().getResource("./resources/pog.png")).getImage();
 	private final Image skull = new ImageIcon(getClass().getResource("./resources/skull.png")).getImage();
 	private final Image grass = new ImageIcon(getClass().getResource("./resources/grass.png")).getImage();
 	private final Image zombie = new ImageIcon(getClass().getResource("./resources/zombie.png")).getImage();
-	private final Image face = new ImageIcon(getClass().getResource("./resources/face.png")).getImage();
-	private final Image[] images = {lava, pog, skull, grass, zombie, face};
+	public final Image face = new ImageIcon(getClass().getResource("./resources/face.png")).getImage();
 	
 	boolean up;
 	boolean down;
 	boolean left;
 	boolean right;
-	public static boolean pause;
 	
 	public static final Character[][] gameMap = {{'0','0','0','0','0','0','0'},{'1','1','1','1','1','1','1'},
 						{'1','0','0','0','0','0','1'},
@@ -49,7 +44,7 @@ public class Game extends JPanel implements ActionListener, KeyListener {
 		tileImages.put('1', pog);
 		tileImages.put('2', lava);
 		
-	setPreferredSize(new Dimension(700, 700));
+		setPreferredSize(new Dimension(700, 700));
 		setBackground(new Color(0, 0, 0));
 		addKeyListener(this);
 		setFocusable(true);
@@ -69,15 +64,11 @@ public class Game extends JPanel implements ActionListener, KeyListener {
 //	gets called automatically
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-
-		for (int i = 0; i < gameMap.length; i++) {
-			for (int j = 0; j < gameMap[i].length; j++) {
-				if (!gameMap[i][j].equals('0')) {
-					g.drawImage(tileImages.get(gameMap[i][j]), j * imageSize + xDisplayOffset, i * imageSize + yDisplayOffset, imageSize, imageSize, null);
-				}
-			}
-		}
 		
+//		updateScale();
+
+
+
 //		how should i order this stuff
 //		find velocity
 //		find collision direction and maximum coordinate
@@ -88,16 +79,51 @@ public class Game extends JPanel implements ActionListener, KeyListener {
 //				return the directions that overlap and the coordinate which it cant go past
 //		update position
 		
-		
 		accelerateUser();
 		player.updatePosition(g);
-		int kys = 500;
+		GameGraphics curFrame = new GameGraphics(player.x, player.y, getWidth(), getHeight(), g);
+		int textOffset = 500;
+		
+		for (int i = 0; i < gameMap.length; i++) {
+			for (int j = 0; j < gameMap[i].length; j++) {
+				if (!gameMap[i][j].equals('0')) {
+					curFrame.drawImage(tileImages.get(gameMap[i][j]), j * imageSize, i * imageSize, imageSize);
+				}
+			}
+		}
+		
+//		gonna just do an if statement for if the thing is wider or taller
+		int sidebarWidth;
+		int sidebarHeight;
+		
+		if (curFrame.width > curFrame.height) {
+			sidebarWidth = curFrame.xDisplayOffset;
+			sidebarHeight = curFrame.height;
+		} else {
+			sidebarWidth = curFrame.width;
+			sidebarHeight = curFrame.yDisplayOffset;
+		}
+
+		g.setColor(new Color(20, 20,20));
+		g.fillRect(0, 0, sidebarWidth, sidebarHeight);
+		g.fillRect(curFrame.width - sidebarWidth, curFrame.height - sidebarHeight, sidebarWidth, sidebarHeight);
+		
 		g.setColor(new Color(255, 255,255));
-		g.drawString(Integer.toString(player.xVel) + ", " + Integer.toString(player.yVel), 3, kys);
-		g.drawString(Integer.toString(player.xIndex) + ", " + Integer.toString(player.yIndex), 3, kys + spacing);
-		g.drawString(Integer.toString(player.xIndex * imageSize) + ", " + Integer.toString(player.yIndex * imageSize), 3, kys + (spacing * 2));
-		g.drawString(Integer.toString(player.x) + ", " + Integer.toString(player.y), 3, kys + (spacing * 3));
-		g.drawImage(face, player.x + xDisplayOffset, player.y + yDisplayOffset, imageSize, imageSize, null);
+		g.drawString(Integer.toString(player.xVel) + ", " + Integer.toString(player.yVel), 3, textOffset);
+		g.drawString(Integer.toString(player.xIndex) + ", " + Integer.toString(player.yIndex), 3, textOffset + spacing);
+		g.drawString(Integer.toString(player.xIndex * imageSize) + ", " + Integer.toString(player.yIndex * imageSize), 3, textOffset + (spacing * 2));
+		g.drawString(Integer.toString(player.x) + ", " + Integer.toString(player.y), 3, textOffset + (spacing * 3));
+		curFrame.drawImage(face, player.x, player.y, imageSize);
+		
+		Point mouse = getMousePosition();
+//		when mouse is outside of the window getMousePosition returns null
+		
+		if (mouse != null) {
+			int cursorOutlineX = mouse.x - curFrame.gameSideLength / 100;
+			int cursorOutlineY = mouse.y - curFrame.gameSideLength / 100;
+	
+			g.fillRect(cursorOutlineX, cursorOutlineY, curFrame.gameSideLength / 50, curFrame.gameSideLength / 50);
+		}
 	}
 
 	public void accelerateUser() {
@@ -176,9 +202,6 @@ public class Game extends JPanel implements ActionListener, KeyListener {
 		if (e.getKeyCode() == 68) {
 			right = true;
 		}
-		if (e.getKeyCode() == 32) { // space
-			pause = true;
-		}
 	}
 
 	@Override
@@ -194,9 +217,6 @@ public class Game extends JPanel implements ActionListener, KeyListener {
 		}
 		if (e.getKeyCode() == 68) { // d
 			right = false;
-		}
-		if (e.getKeyCode() == 32) { // space
-			pause = false;
 		}
 	}
 }

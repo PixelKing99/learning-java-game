@@ -37,11 +37,9 @@ public class Entity {
 		CollisionTiles collisionTiles = findCollisionTiles(xVel, yVel);
 		Directions collisions = findCollisionDirection2(collisionTiles, xVel, yVel);
 		
-		if (!Game.pause) {
-			x += xVel;
-			y += yVel;
-			collide(collisions);
-		}
+		x += xVel;
+		y += yVel;
+		collide(collisions);
 		
 	}
 	
@@ -92,14 +90,14 @@ public class Entity {
 		boolean validIndex = yValid && xIndex < Game.gameMap[yIndex].length && xIndex >= 0;
 		
 		if (validIndex && !Game.gameMap[yIndex][xIndex].equals('0')) {
-			g.setColor(new Color(255, 0,0));
-			g.fillRect(xIndex * imageSize + Game.xDisplayOffset, yIndex * imageSize + Game.yDisplayOffset, imageSize, imageSize);
+//			g.setColor(new Color(255, 0,0));
+//			g.fillRect(xIndex * imageSize + Game.xDisplayOffset, yIndex * imageSize + Game.yDisplayOffset, imageSize, imageSize);
 			
 			return true;
 			
 		} else {
-			g.setColor(new Color(255, 255,255));
-			g.drawRect(xIndex * imageSize + Game.xDisplayOffset, yIndex * imageSize + Game.yDisplayOffset, imageSize, imageSize);
+//			g.setColor(new Color(255, 255,255));
+//			g.drawRect(xIndex * imageSize + Game.xDisplayOffset, yIndex * imageSize + Game.yDisplayOffset, imageSize, imageSize);
 			return false;
 		}
 	}
@@ -119,15 +117,15 @@ public class Entity {
 			
 			if (newX < xBoundary && x >= xBoundary && y < yBoundary) {
 				collisionDirections.set('L', true);
-				g.drawString("<", curIndexes[0] * imageSize + Game.xDisplayOffset, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
+//				g.drawString("<", curIndexes[0] * imageSize + Game.xDisplayOffset, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
 			} else if (newY < yBoundary && y >= yBoundary && x < xBoundary) {
 				collisionDirections.set('U', true);
-				g.drawString("^", curIndexes[0] * imageSize + Game.xDisplayOffset, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
+//				g.drawString("^", curIndexes[0] * imageSize + Game.xDisplayOffset, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
 			} else if (!collisionsTiles.collisions[1][0] && !collisionsTiles.collisions[0][1]) {
 				collisionDirections.set('U', true);
-				g.drawString("^", curIndexes[0] * imageSize + Game.xDisplayOffset, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
+//				g.drawString("^", curIndexes[0] * imageSize + Game.xDisplayOffset, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
 			} else {
-				g.drawString("x", curIndexes[0] * imageSize + Game.xDisplayOffset, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
+//				g.drawString("x", curIndexes[0] * imageSize + Game.xDisplayOffset, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
 			}
 		}
 		
@@ -139,15 +137,15 @@ public class Entity {
 			
 			if (newX > xBoundary && x <= xBoundary && y < yBoundary) {
 				collisionDirections.set('R', true);
-				g.drawString(">", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
+//				g.drawString(">", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
 			} else if (newY < yBoundary && y >= yBoundary && x > xBoundary) {
 				collisionDirections.set('U', true);
-				g.drawString("^", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
+//				g.drawString("^", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
 			} else if (!collisionsTiles.collisions[1][1] && !collisionsTiles.collisions[0][0]) {
 				collisionDirections.set('U', true);
-				g.drawString("^", curIndexes[0] * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
+//				g.drawString("^", curIndexes[0] * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
 			} else {
-				g.drawString("x", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
+//				g.drawString("x", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
 			}
 		}
 		
@@ -159,16 +157,16 @@ public class Entity {
 			
 			if (newX < xBoundary && x >= xBoundary && y > yBoundary) {
 				collisionDirections.set('L', true);
-				g.drawString("<", curIndexes[0] * imageSize + Game.xDisplayOffset, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
+//				g.drawString("<", curIndexes[0] * imageSize + Game.xDisplayOffset, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
 			} else if (newY > yBoundary && y <= yBoundary && x < xBoundary) {
 				collisionDirections.set('D', true);
-				g.drawString("v", curIndexes[0] * imageSize + Game.xDisplayOffset, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
+//				g.drawString("v", curIndexes[0] * imageSize + Game.xDisplayOffset, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
 			} else if (!collisionsTiles.collisions[1][1] && !collisionsTiles.collisions[0][0]) {
 				collisionDirections.set('D', true);
-				g.drawString("v", curIndexes[0] * imageSize + Game.xDisplayOffset, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
+//				g.drawString("v", curIndexes[0] * imageSize + Game.xDisplayOffset, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
 				
 			} else {
-				g.drawString("x", curIndexes[0] * imageSize + Game.xDisplayOffset, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
+//				g.drawString("x", curIndexes[0] * imageSize + Game.xDisplayOffset, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
 			}
 		}
 		
@@ -180,15 +178,15 @@ public class Entity {
 			
 			if (newX > xBoundary && x <= xBoundary && y > yBoundary) {
 				collisionDirections.set('R', true);
-				g.drawString(">", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
+//				g.drawString(">", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
 			} else if (newY > yBoundary && y <= yBoundary && x > xBoundary) {
 				collisionDirections.set('D', true);
-				g.drawString("v", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
+//				g.drawString("v", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
 			} else if (!collisionsTiles.collisions[1][0] && !collisionsTiles.collisions[0][1]) {
 				collisionDirections.set('D', true);
-				g.drawString("v", curIndexes[0] * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset);
+//				g.drawString("v", curIndexes[0] * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset);
 			} else {
-				g.drawString("x", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
+//				g.drawString("x", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
 			}
 		}
 		
