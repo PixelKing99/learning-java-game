@@ -1,17 +1,9 @@
-import java.util.HashMap;
+// idk if im stupid or java is but making a file just to put this in here is dumb
+// if i put this in SelectedDirections then it becomes SelectedDirections.Directions.UP which is just stupidly long
 
-public class Directions {
-	HashMap<Character, Boolean> directions = new HashMap<>();
-	Directions() {
-		directions.put('U', false);
-		directions.put('D', false);
-		directions.put('L', false);
-		directions.put('R', false);
-	}
-	public void set(char direction, boolean value) {
-		directions.put(direction, value);
-	}
-	public boolean get(char direction) {
-		return directions.get(direction);
-	}
+public enum Directions {
+	UP,
+	DOWN,
+	LEFT,
+	RIGHT
 }

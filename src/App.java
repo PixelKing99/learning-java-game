@@ -1,9 +1,11 @@
-import javax.swing.JFrame;
-import java.awt.*;
-import java.sql.Time;
+
+import javax.swing.*;
+import java.io.IOException;
+import java.util.zip.DataFormatException;
 
 public class App {
-	public static void main(String[] args) {
+	
+	public static void main(String[] args) throws IOException, DataFormatException {
 		
 		JFrame frame = new JFrame("Test");
 		frame.setLocationRelativeTo(null);
@@ -15,5 +17,9 @@ public class App {
 		frame.pack();
 		game.requestFocus();
 		frame.setVisible(true);
+
+	
 	}
+
+
 }

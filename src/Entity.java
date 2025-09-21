@@ -1,213 +1,237 @@
+import saves.Map;
+import saves.Tile;
+
 import java.awt.*;
 
 public class Entity {
 	
-	private class CollisionTiles {
-		public boolean[][] collisions = new boolean[2][2];
-		public int[][][] collisionIndexes = new int[2][2][2];
-		CollisionTiles(boolean[][] collisions, int[][][] collisionIndexes) {
-			this.collisions = collisions;
-			this.collisionIndexes = collisionIndexes;
+	private static class CollisionTiles {
+		private boolean[][] collisions = {{false, false}, {false, false}};
+		private int[][][] collisionIndexes = new int[2][2][2];
+		
+		public void setTrue(int i, int j, int xIndex, int yIndex) {
+			collisions[i][j] = true;
+			collisionIndexes[i][j][0] = xIndex;
+			collisionIndexes[i][j][1] = yIndex;
+		}
+		
+		public boolean getBool(int i, int j) {
+			return collisions[i][j];
+		}
+		
+		public Point getIndexes(int i, int j) {
+			return new Point(collisionIndexes[i][j][0], collisionIndexes[i][j][1]);
 		}
 	}
 	
 	
 	int x;
 	int y;
+	
+	private int newX;
+	private int newY;
+	
+	Map map;
+	
 	int xVel = 0;
 	int yVel = 0;
-	int imageSize = Game.imageSize;
 	
 	int xIndex;
 	int yIndex;
+	private int newXIndex;
+	private int newYIndex;
 	
-	Graphics g;
+//	GameGraphics g;
+	public SelectedDirections collisionDirections = new SelectedDirections();
 	
-	Entity(int x, int y) {
+	Entity(Map map, int x, int y) {
 		this.x = x;
 		this.y = y;
+		this.map = map;
 	}
 	
-	public void updatePosition(Graphics g) {
-		xIndex = x / imageSize;
-		yIndex = y / imageSize;
+	public void updatePosition(boolean spacebar) {
+//		this.g = g;
+//
+//		if (this.g == null) {
+//			return;
+//		}
 		
-		this.g = g;
+
+		xIndex = getIndex(x);
+		yIndex = getIndex(y);
 		
-		CollisionTiles collisionTiles = findCollisionTiles(xVel, yVel);
-		Directions collisions = findCollisionDirection2(collisionTiles, xVel, yVel);
+		newX = x + xVel;
+		newY = y + yVel;
 		
-		x += xVel;
-		y += yVel;
-		collide(collisions);
+		newXIndex = getIndex(newX);
+		newYIndex = getIndex(newY);
+		
+		
+		CollisionTiles collisionTiles = findCollisionTiles();
+		collisionDirections = findCollisionDirections(collisionTiles);
+		
+		
+		x = newX;
+		y = newY;
+		xIndex = newXIndex;
+		yIndex = newYIndex;
+		
+		collide();
 		
 	}
 	
-	public CollisionTiles findCollisionTiles(int offsetX, int offsetY) {
-		int xIndex = (x + offsetX) / imageSize;
-		int yIndex = (y + offsetY) / imageSize;
-		
-		boolean overlapRight = (x + offsetX) > xIndex * imageSize;
-		boolean overlapDown = (y + offsetY) > yIndex * imageSize;
-		
-		boolean[][] collisions = {{false, false}, {false, false}};
-		int[][][] collisionIndexes = new int[2][2][2];
-		
-		collisions[0][0] = checkTile(xIndex, yIndex);
-		if (collisions[0][0]) {
-			collisionIndexes[0][0][0] = xIndex;
-			collisionIndexes[0][0][1] = yIndex;
+	private int getIndex(int coord) {
+		int index = coord / Game.tileSize;
+		if (coord < 0 && coord != index * Game.tileSize) {
+			index -= 1;
 		}
+		return index;
+	}
+	
+//	all of this collision code is ugly and bad af and im finna fix it but dont feel like it rn
+	private CollisionTiles findCollisionTiles() {
+		
+		
+		boolean overlapRight = newX > newXIndex * Game.tileSize;
+		boolean overlapDown = newY > newYIndex * Game.tileSize;
+		
+		CollisionTiles collisions = new CollisionTiles();
+		
+		
+		updateCollisions(collisions, 0, 0);
 		
 		if (overlapRight) {
-			collisions[0][1] = checkTile(xIndex + 1, yIndex);
-			if (collisions[0][1]) {
-				collisionIndexes[0][1][0] = xIndex + 1;
-				collisionIndexes[0][1][1] = yIndex;
-			}
+			updateCollisions(collisions, 0, 1);
 		}
 		if (overlapDown) {
-			collisions[1][0] = checkTile(xIndex, yIndex + 1);
-			if (collisions[1][0]) {
-				collisionIndexes[1][0][0] = xIndex;
-				collisionIndexes[1][0][1] = yIndex + 1;
-			}
+			updateCollisions(collisions, 1, 0);
 		}
 		if (overlapRight && overlapDown) {
-			collisions[1][1] = checkTile(xIndex + 1, yIndex + 1);
-			if (collisions[1][1]) {
-				collisionIndexes[1][1][0] = xIndex + 1;
-				collisionIndexes[1][1][1] = yIndex + 1;
-			}
+			updateCollisions(collisions, 1, 1);
 		}
-		CollisionTiles collisionTiles = new CollisionTiles(collisions, collisionIndexes);
-		return collisionTiles;
+		return collisions;
 	}
 	
-	public boolean checkTile(int xIndex, int yIndex) {
+	private void updateCollisions(CollisionTiles collisions, int yIndexOffset, int xIndexOffset) {
 		
-		boolean yValid = yIndex < Game.gameMap.length && yIndex >= 0;
-		boolean validIndex = yValid && xIndex < Game.gameMap[yIndex].length && xIndex >= 0;
-		
-		if (validIndex && !Game.gameMap[yIndex][xIndex].equals('0')) {
-//			g.setColor(new Color(255, 0,0));
-//			g.fillRect(xIndex * imageSize + Game.xDisplayOffset, yIndex * imageSize + Game.yDisplayOffset, imageSize, imageSize);
-			
-			return true;
-			
-		} else {
-//			g.setColor(new Color(255, 255,255));
-//			g.drawRect(xIndex * imageSize + Game.xDisplayOffset, yIndex * imageSize + Game.yDisplayOffset, imageSize, imageSize);
-			return false;
+		if (checkTile(newXIndex + xIndexOffset, newYIndex + yIndexOffset)) {
+			collisions.setTrue(yIndexOffset, xIndexOffset, newXIndex + xIndexOffset, newYIndex + yIndexOffset);
 		}
 	}
 	
-	public Directions findCollisionDirection2(CollisionTiles collisionsTiles, int offsetX, int offsetY) {
-		Directions collisionDirections = new Directions();
+	private boolean checkTile(int xIndex, int yIndex) {
 		
-		g.setColor(new Color(255, 255,255));
-		g.setFont(new Font("", 0, 20));
-		int newX = x + offsetX;
-		int newY = y + offsetY;
+		boolean yValid = yIndex < map.getLength() && yIndex >= 0;
+		boolean validIndex = yValid && xIndex < map.getInnerLength() && xIndex >= 0;
 		
-		if (collisionsTiles.collisions[0][0]) {
-			int[] curIndexes = collisionsTiles.collisionIndexes[0][0];
-			int xBoundary = (curIndexes[0] + 1) * imageSize;
-			int yBoundary = (curIndexes[1] + 1) * imageSize;
-			
-			if (newX < xBoundary && x >= xBoundary && y < yBoundary) {
-				collisionDirections.set('L', true);
-//				g.drawString("<", curIndexes[0] * imageSize + Game.xDisplayOffset, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
-			} else if (newY < yBoundary && y >= yBoundary && x < xBoundary) {
-				collisionDirections.set('U', true);
-//				g.drawString("^", curIndexes[0] * imageSize + Game.xDisplayOffset, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
-			} else if (!collisionsTiles.collisions[1][0] && !collisionsTiles.collisions[0][1]) {
-				collisionDirections.set('U', true);
-//				g.drawString("^", curIndexes[0] * imageSize + Game.xDisplayOffset, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
-			} else {
-//				g.drawString("x", curIndexes[0] * imageSize + Game.xDisplayOffset, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
+		return validIndex && map.get(yIndex, xIndex) == Tile.WALL;
+	}
+	
+	private int switch1And0(int oneOrZero) {
+		switch (oneOrZero) {
+			case 1 -> {
+				return 0;
+			}
+			case 0 -> {
+				return 1;
 			}
 		}
-		
-		if (collisionsTiles.collisions[0][1]) {
-			int[] curIndexes = collisionsTiles.collisionIndexes[0][1];
-			int xBoundary = (curIndexes[0] - 1) * imageSize;
-			int yBoundary = (curIndexes[1] + 1) * imageSize;
-			
-			
-			if (newX > xBoundary && x <= xBoundary && y < yBoundary) {
-				collisionDirections.set('R', true);
-//				g.drawString(">", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
-			} else if (newY < yBoundary && y >= yBoundary && x > xBoundary) {
-				collisionDirections.set('U', true);
-//				g.drawString("^", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
-			} else if (!collisionsTiles.collisions[1][1] && !collisionsTiles.collisions[0][0]) {
-				collisionDirections.set('U', true);
-//				g.drawString("^", curIndexes[0] * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
-			} else {
-//				g.drawString("x", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset + Game.spacing);
+		throw new IllegalArgumentException("only accepts 1 or 0");
+	}
+	
+//	direction represented as +/-1, relative to the players position
+	private int relativeIndexToDirection(int indexOffset) {
+		switch (indexOffset) {
+			case 1 -> {
+				return -1;
+			}
+			case 0 -> {
+				return 1;
 			}
 		}
+		throw new IllegalArgumentException("only accepts 1 or 0");
 		
-		if (collisionsTiles.collisions[1][0]) {
-			int[] curIndexes = collisionsTiles.collisionIndexes[1][0];
-			int xBoundary = (curIndexes[0] + 1) * imageSize;
-			int yBoundary = (curIndexes[1] - 1) * imageSize;
+	}
+	
+	private void collisionTileToDirection(CollisionTiles collisions, int relativeYIndex, int relativeXIndex, SelectedDirections collisionDirections) {
+		
+		if (collisions.getBool(relativeYIndex, relativeXIndex)) {
+			
+			int xDirection = relativeIndexToDirection(relativeXIndex);
+			int yDirection = relativeIndexToDirection(relativeYIndex);
+			
+			Point indexes = collisions.getIndexes(relativeYIndex, relativeXIndex);
+
+//			the direction value adds + or -1 to the index which essentially moves the boundary one tile towards the player because we are treating the player as a single point and not going based off of its nearest corner
+			int xBoundary = (indexes.x + xDirection) * Game.tileSize;
+			int yBoundary = (indexes.y + yDirection) * Game.tileSize;
 			
 			
-			if (newX < xBoundary && x >= xBoundary && y > yBoundary) {
-				collisionDirections.set('L', true);
-//				g.drawString("<", curIndexes[0] * imageSize + Game.xDisplayOffset, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
-			} else if (newY > yBoundary && y <= yBoundary && x < xBoundary) {
-				collisionDirections.set('D', true);
-//				g.drawString("v", curIndexes[0] * imageSize + Game.xDisplayOffset, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
-			} else if (!collisionsTiles.collisions[1][1] && !collisionsTiles.collisions[0][0]) {
-				collisionDirections.set('D', true);
-//				g.drawString("v", curIndexes[0] * imageSize + Game.xDisplayOffset, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
+			boolean wasTouchingXBoundary = x == xBoundary;
+			boolean wasTouchingYBoundary = y == yBoundary;
+			
+			boolean isPastXBoundary = newX < xBoundary;
+			boolean isPastYBoundary = newY < yBoundary;
+			
+			boolean wasPastXBoundary = x < xBoundary;
+			boolean wasPastYBoundary = y < yBoundary;
+			
+//			the relativeIndexes should only be 1 or 0 and 0 is what these are initially defined as
+			if (relativeYIndex == 1) {
+				isPastYBoundary = newY > yBoundary;
+				wasPastYBoundary = y > yBoundary;
+			}
+			
+			if (relativeXIndex == 1) {
+				isPastXBoundary = newX > xBoundary;
+				wasPastXBoundary = x > xBoundary;
+			}
+			
+			
+			if (isPastXBoundary && (!wasPastXBoundary || wasTouchingXBoundary) && wasPastYBoundary) {
+				// have to invert the horizontal sign because the screen's coordinates increase in the directions v> but it makes the most sense to set Directions.UP and RIGHT be positive (ie. ^>) inside the setTrue method so the vertical already is inverted, but because of the way the checks are set up and stuff we need both to be inverted
+				collisionDirections.setTrue(-xDirection, 0);
 				
-			} else {
-//				g.drawString("x", curIndexes[0] * imageSize + Game.xDisplayOffset, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
+			} else if (isPastYBoundary && (!wasPastYBoundary || wasTouchingYBoundary) && wasPastXBoundary) {
+				collisionDirections.setTrue(0, yDirection);
+
+//			this is the case where it is colliding with a tile with no neighbors and it collides from both directions so it could be interpreted as either direction
+//			the 'switch1And0' is to check to see if we are colliding with either of the tiles beside the one being checked
+			} else if (!collisions.getBool(switch1And0(relativeYIndex), relativeXIndex) && !collisions.getBool(relativeYIndex, switch1And0(relativeXIndex))) {
+				collisionDirections.setTrue(0, yDirection); // -xDirection would also work here, its arbitrary
 			}
 		}
 		
-		if (collisionsTiles.collisions[1][1]) {
-			int[] curIndexes = collisionsTiles.collisionIndexes[1][1];
-			int xBoundary = (curIndexes[0] - 1) * imageSize;
-			int yBoundary = (curIndexes[1] - 1) * imageSize;
-			
-			
-			if (newX > xBoundary && x <= xBoundary && y > yBoundary) {
-				collisionDirections.set('R', true);
-//				g.drawString(">", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
-			} else if (newY > yBoundary && y <= yBoundary && x > xBoundary) {
-				collisionDirections.set('D', true);
-//				g.drawString("v", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
-			} else if (!collisionsTiles.collisions[1][0] && !collisionsTiles.collisions[0][1]) {
-				collisionDirections.set('D', true);
-//				g.drawString("v", curIndexes[0] * imageSize + Game.xDisplayOffset - Game.spacing, curIndexes[1] * imageSize + Game.yDisplayOffset);
-			} else {
-//				g.drawString("x", (curIndexes[0] + 1) * imageSize + Game.xDisplayOffset - Game.spacing, (curIndexes[1] + 1) * imageSize + Game.yDisplayOffset);
-			}
-		}
+	}
+	
+	
+	private SelectedDirections findCollisionDirections(CollisionTiles collisions) {
+		SelectedDirections collisionDirections = new SelectedDirections();
+		
+		collisionTileToDirection(collisions, 0, 0, collisionDirections);
+		collisionTileToDirection(collisions, 0, 1, collisionDirections);
+		collisionTileToDirection(collisions, 1, 0, collisionDirections);
+		collisionTileToDirection(collisions, 1, 1, collisionDirections);
 		
 		return collisionDirections;
 	}
 	
-	public void collide(Directions collisions) {
-		if (collisions.get('U')) {
-			y = (y / imageSize + 1) * imageSize;
+	public void collide() {
+		if (collisionDirections.get(Directions.UP)) {
+			y = (yIndex + 1) * Game.tileSize;
 			yVel = 0;
 		}
-		if (collisions.get('D')) {
-			y = (y / imageSize) * imageSize;
+		if (collisionDirections.get(Directions.DOWN)) {
+			y = yIndex * Game.tileSize;
 			yVel = 0;
 		}
-		if (collisions.get('L')) {
-			x = (x / imageSize + 1) * imageSize;
+		if (collisionDirections.get(Directions.LEFT)) {
+			x = (xIndex + 1) * Game.tileSize;
 			xVel = 0;
 		}
-		if (collisions.get('R')) {
-			x = (x / imageSize) * imageSize;
+		if (collisionDirections.get(Directions.RIGHT)) {
+			x = xIndex * Game.tileSize;
 			xVel = 0;
 		}
 	}
