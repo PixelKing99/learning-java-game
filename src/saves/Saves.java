@@ -37,7 +37,7 @@ public class Saves {
 	
 	
 //	decided to use 2 bytes just cause then when checking a file, if it is broken, there is a lower chance of NEW_FILE_SEGMENT bytes randomly being in the correct spot
-	public static final byte[] NEW_FILE_SEGMENT = new byte[]{(byte) 234, 10};
+	public static final byte[] NEW_FILE_SEGMENT = {(byte) 234, 10};
 	
 	
 	
