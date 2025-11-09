@@ -26,14 +26,21 @@ public class Hud {
 		g.setFont(font);
 		int fontHeight = g.getFontMetrics().getHeight();
 		
-		
+//		it doesnt really matter if the set is in order but i want to have it that way so that if there is some bug with the hud itll be more predictable
 		SequencedSet<Entry<Integer, DynamicString>> set = hud.sequencedEntrySet();
 		
 		for (Entry<Integer, DynamicString> e : set) {
 			String s = e.getValue().get();
 			
+			Rectangle2D r = g.getFontMetrics().getStringBounds(s, g);
+			
+//			the way it renders currently theres a gap between each line of text even if their supposed to be back to back
+//			if i want to get rid of it i have to switch out r.getHeight for fontHeight and maybe some other stuff, but i think it looks kinda clean so ima keep it for now
+			g.setColor(new Color(150, 150, 150, 100));
+			g.fillRect(0, (spacing + fontHeight) * e.getKey(), (int) r.getWidth() + 5, (int) r.getHeight());
+			
 			g.setColor(new Color(255, 255, 255));
-			g.drawString(s, 3, (spacing + fontHeight) * (e.getKey() + 1));
+			g.drawString(s, 3, (spacing + fontHeight) * e.getKey() - (int) r.getY());
 		}
 	}
 }
