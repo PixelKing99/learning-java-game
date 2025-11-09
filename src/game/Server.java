@@ -4,6 +4,7 @@ import game.entities.Player;
 import game.input.InputState;
 import game.input.UserInput;
 import render.Frame;
+import render.Hud;
 import render.Render;
 import render.Screen;
 import saves.Map;
@@ -44,11 +45,13 @@ public class Server implements Runnable {
 		gameMap = saveFile.getMap();
 	
 		player = new Player(100, 100);
+		Hud.add(3, new DynamicString("x: ").add(() -> {return player.getCoords().x + "";}).add("  y: ").add(() -> {return player.getCoords().y + "";}));
+		Hud.add(4, new DynamicString("xΔ: ").add(() -> {return player.getVelocity().x + "";}).add("  yΔ: ").add(() -> {return player.getVelocity().y + "";}));
 		
 		
 		serverLoop = new ConcurrentRateLoop<>(Server.DEFAULT_TPS, this, "serverThread");
 		
-		Frame.hud.add(new DynamicString("tps: ").add(serverLoop::getDebugData));
+		Hud.add(1, new DynamicString("tps: ").add(serverLoop::getDebugData));
 	}
 	
 	

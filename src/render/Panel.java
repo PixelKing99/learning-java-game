@@ -28,7 +28,7 @@ public class Panel extends JPanel implements Runnable {
 		
 		renderLoop = new ConcurrentRateLoop<>(Render.DEFAULT_FPS, this, "renderThread"); // this could probably be in the main thread but idk
 		
-		Frame.hud.add(new DynamicString("fps: ").add(renderLoop::getDebugData));
+		Hud.add(0, new DynamicString("fps: ").add(renderLoop::getDebugData));
 	}
 	
 	public void resume() {

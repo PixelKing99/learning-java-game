@@ -28,7 +28,6 @@ public abstract class Frame {
 	public final int xDisplayOffset;
 	public final int yDisplayOffset;
 	
-	public static ArrayList<DynamicString> hud = new ArrayList<>();
 	
 	
 	
@@ -99,19 +98,7 @@ public abstract class Frame {
 	
 	
 	public void drawHUD() {
-		
-		int spacing = 20;
-		int offset = spacing;
-		
-		
-		Font font = new Font(null);
-		g.setFont(font);
-		g.setColor(new Color(255, 255, 255));
-		for (DynamicString message : hud) {
-			g.drawString(message.get(), 3, offset);
-			offset += spacing;
-		}
-		
+		Hud.render(g);
 	}
 }
 
