@@ -9,7 +9,7 @@ import java.util.zip.DataFormatException;
 
 public class Map implements Saveable {
 	public static final Tile[][] DEFAULT_MAP = new Tile[][]
-	{{Tile.WALL, Tile.WALL, Tile.WALL, Tile.WALL, Tile.WALL},
+	{{Tile.WALL, Tile.WALL, Tile.AIR, Tile.WALL, Tile.WALL},
 	{Tile.WALL, Tile.AIR, Tile.AIR, Tile.AIR, Tile.WALL},
 	{Tile.WALL, Tile.AIR, Tile.AIR, Tile.AIR, Tile.AIR},
 	{Tile.WALL, Tile.LAVA, Tile.AIR, Tile.AIR, Tile.WALL},

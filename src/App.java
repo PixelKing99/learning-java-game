@@ -1,8 +1,8 @@
 
+import game.input.UserInput;
 import render.Panel;
 import game.Server;
 import render.Render;
-import util.ConcurrentRateLoop;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -10,6 +10,7 @@ import java.util.zip.DataFormatException;
 
 public class App {
 	
+//	gonna need to move all of the frame stuff etc somewhere else cause i should just start the render and server loop here
 	public static void main(String[] args) throws DataFormatException, IOException {
 		
 		JFrame frame = new JFrame("Very Fun Game");
@@ -17,24 +18,28 @@ public class App {
 		frame.setResizable(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-//		annoying order and stuff cause Server needs UserInput which needs Panel
+	
 		Server server = new Server();
 		
-		Panel panel = new Panel(server);
+		Render render = new Render(server);
+		Panel panel = new Panel(render);
 		
-		server.initializeUserInput(panel.getUserInput());
+		UserInput.init(panel);
 		
-		
-		
-		ConcurrentRateLoop serverLoop = new ConcurrentRateLoop(Server.DEFAULT_TPS, server, "serverThread");
-		ConcurrentRateLoop renderLoop = new ConcurrentRateLoop(Render.DEFAULT_FPS, panel, "renderThread"); // this could probably be in the main thread but idk
-		
-		panel.initializePerformanceGetters(renderLoop::getDebugData, serverLoop::getDebugData);
 		
 		
 		frame.add(panel);
 		frame.pack();
 		panel.requestFocus();
+		
+		
+//		by default the thread is paused so have to resume
+//		the server stays paused until starting the game
+		panel.resume();
+		
+		
+		
 		frame.setVisible(true);
+		
 	}
 }

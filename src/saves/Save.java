@@ -11,7 +11,36 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.zip.DataFormatException;
 
-public class Saves {
+public class Save {
+
+//	new structure:
+//	i dont think i really need this cause rn everything is kinda simple and i havent decided the functionality i want so i would probably do all this and then be fine with just one file
+
+//	Save: manages files which are stored in a folder
+//		SaveFile: a file inside Save which can have multiple segments
+//			Saveable: interface which means it can be a file segment
+
+//	idk how ima do this, definitely wrong syntax here
+//	SaveFile[] files = {new SaveFile("path", {Map::new, Entities::new}),
+//						new SaveFile("path", {Config::new})}
+//
+//	public class Save {
+//		Save(String path) {
+//			for (SaveFile saveFile : files) {
+//				saveFile.load()
+//				// smthn with enums to store the file in a way that has nice syntax?
+//
+//			}
+//		}
+//	}
+	
+	
+	
+	
+	
+	
+	
+	
 
 	public enum FileSegment {
 		MAP
@@ -43,8 +72,8 @@ public class Saves {
 	
 	
 	//	this ones for loading an existing world
-	public Saves(String fileName) throws DataFormatException, IOException {
-		updateHashMap();
+	public Save(String fileName) throws DataFormatException, IOException {
+		updateLoadMethods();
 		updatePath(fileName);
 		
 		loadFile();
@@ -54,8 +83,8 @@ public class Saves {
 	
 	
 //	these 2 are for generating a new world file
-	public Saves(String fileName, Map map) throws IOException {
-		updateHashMap();
+	public Save(String fileName, Map map) throws IOException {
+		updateLoadMethods();
 		updatePath(fileName);
 		this.map = map;
 		version = DEFUALT_VERSION;
@@ -64,8 +93,8 @@ public class Saves {
 
 	
 	
-	public Saves(String fileName, Map map, Version version) throws IOException {
-		updateHashMap();
+	public Save(String fileName, Map map, Version version) throws IOException {
+		updateLoadMethods();
 		updatePath(fileName);
 		this.map = map;
 		this.version = version;
@@ -74,7 +103,7 @@ public class Saves {
 	
 	
 	
-	private void updateHashMap() {
+	private void updateLoadMethods() {
 		savedObjectsLoadMethods.put(FileSegment.MAP, Map::new);
 	}
 	

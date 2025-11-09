@@ -3,49 +3,70 @@ package util;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.IntFunction;
+import java.util.function.Function;
 
-// this shi's jank so there probably some sort of bad practice or whatever that's a vulnerability but idgaf at this point. tbf this runs on a client so like
+// this shi's jank so there probably some sort of bad practice or whatever that's a vulnerability but idgaf at this point. tbf this runs on a client so like (it will actually run on the server but idk)
 public class MergeArray <T>{
-	int newLength = 0;
-	public List<T> arrays = new ArrayList<>();
-	public IntFunction<T> arrayCreator; // got ai help here tbh
-	Class<?> componentType;
+	private int newLength = 0;
+	private List<T> arrays = new ArrayList<>();
+	private Function<Integer, T> arrayCreator;
+	private Class<?> componentType;
 	
 //	for arrayCreator it needs primitive[]::new to be passed in ig
-	public MergeArray(IntFunction<T> arrayCreator) {
+	public MergeArray(Function<Integer, T> arrayCreator) {
+		
+		componentType = arrayCreator.apply(0).getClass().getComponentType();
+		
 		this.arrayCreator = arrayCreator;
 	}
 	
 	public void addArray(T array) {
-//		used ai to help with this aswell
-		componentType = array.getClass().getComponentType();
+		Class<?> componentType = array.getClass().getComponentType();
 		if (!componentType.isPrimitive()) {
 			throw new IllegalArgumentException("must be a primitive array");
 		}
+		if (!componentType.equals(this.componentType)) {
+			throw new IllegalArgumentException("passed array of type: " + componentType.getName() + "\nMergeArray currently storing type: " + this.componentType.getName());
+		}
 		
-		// have to use the whole Array.method thing cause T stores an array but T is not an array, ie. T = byte[] not T[] = byte
+		// have to use the whole Array.method thing cause T is an array, ie. T = byte[] not T = byte -> T[] = byte[]
 		newLength += Array.getLength(array);
 		arrays.add(array);
 	}
-	
-//	public <t> void addElement(t element) {
-////	want to check that type of element is the same as the elements of the arrays but it seems super fricking complicated so i give up, ill just put it in an array before passing it in
-//	}
 
-//	i realize now that i can probably use system arraycopy for this or smthn but i dont feel like it rn
+//	havent actually tested this method so idk if it works
+	public <t> void addElement(t element) {
+
+		Class<?> componentType = element.getClass().getComponentType();
+		if (!componentType.equals(this.componentType)) {
+			throw new IllegalArgumentException("passed element of type: " + componentType.getName() + "\nMergeArray currently storing type: " + this.componentType.getName());
+		}
+		
+//		creating and adding a one element array to 'arrays'
+		newLength += Array.getLength(1);
+		
+		T arr = arrayCreator.apply(1);
+		Array.set(arr, 0, element);
+		
+		arrays.add(arr);
+	}
+
+
 	public T getMergedArray() {
 		T newArray = arrayCreator.apply(newLength);
 		
 		int i = 0;
 		for (T arr : arrays) {
-			for (int j = 0; j < Array.getLength(arr); j++) {
-				
-				Array.set(newArray, i, Array.get(arr, j));
-				i++;
-			}
+			
+			System.arraycopy(arr, 0, newArray, i, Array.getLength(arr));
+			i += Array.getLength(arr);
 		}
 		
 		return newArray;
+	}
+	
+//	only here if i need it for debug or smthn
+	public String getComponentTypeName() {
+		return componentType.getName();
 	}
 }

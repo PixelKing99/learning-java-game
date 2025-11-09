@@ -3,8 +3,13 @@ package game;
 import game.entities.Player;
 import game.input.InputState;
 import game.input.UserInput;
+import render.Frame;
+import render.Render;
+import render.Screen;
 import saves.Map;
-import saves.Saves;
+import saves.Save;
+import util.ConcurrentRateLoop;
+import util.DynamicString;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -17,47 +22,56 @@ public class Server implements Runnable {
 //	just copying minecraft ig with 20 ticks per second
 	public static final int DEFAULT_TPS = 20;
 	public static final int TILE_SIZE = 100; // used for calculations inside the game, not corresponding to a number of pixels
-	
 
 
-//	make saves use a folder
+//	make main menu
 //	need to add ability to select tiles and then some way to select how to change it
 //	add enemies
-//	function to lava
+//	function to lava/add health
+//	make saves use a folder - maybe
 	
-	private Saves saveFile;
+	private Save saveFile;
 	private Map gameMap;
 	
 	private Player player;
 	private UserInput userInput;
-	
+	private ConcurrentRateLoop<Server> serverLoop;
 	
 	
 	
 	public Server() throws DataFormatException, IOException {
-		
 		saveFile = loadSave();
 		gameMap = saveFile.getMap();
 	
 		player = new Player(100, 100);
 		
+		
+		serverLoop = new ConcurrentRateLoop<>(Server.DEFAULT_TPS, this, "serverThread");
+		
+		Frame.hud.add(new DynamicString("tps: ").add(serverLoop::getDebugData));
 	}
 	
-	public void initializeUserInput(UserInput userInput) {
-		this.userInput = userInput;
+	
+	
+	public void pause() {
+		serverLoop.pause();
+	}
+	
+	public void resume() {
+		serverLoop.resume();
 	}
 	
 	
 	
 	
-	public Saves loadSave() throws DataFormatException, IOException {
-		Saves saveFile;
+	public Save loadSave() throws DataFormatException, IOException {
+		Save saveFile;
 		try {
-			saveFile = new Saves("default");
+			saveFile = new Save("default");
 			
 		} catch (FileNotFoundException fnfe) {
 			
-			saveFile = new Saves("default", new Map(Map.DEFAULT_MAP));
+			saveFile = new Save("default", new Map(Map.DEFAULT_MAP));
 		}
 		
 		return saveFile;
@@ -66,10 +80,15 @@ public class Server implements Runnable {
 	
 	
 	
+	@Override
+	public void run() {
+		tick();
+	}
+	
 	public void tick() {
 
 //		the main tick logic
-		InputState inputState = userInput.getInputState();
+		InputState inputState = UserInput.getInputState();
 		player.tick(inputState.accelerating, gameMap);
 		
 	}
@@ -96,9 +115,4 @@ public class Server implements Runnable {
 		return player;
 	}
 	
-	
-	@Override
-	public void run() {
-		tick();
-	}
 }

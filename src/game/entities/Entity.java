@@ -1,6 +1,6 @@
 package game.entities;
 
-import game.Direction;
+import util.Direction;
 import game.SelectedDirections;
 import game.Server;
 import saves.Map;
@@ -49,7 +49,7 @@ public abstract class Entity {
 	
 	private int maxSpeed;
 	private int accel;
-	private SelectedDirections collisionDirections;
+	private SelectedDirections collisionDirections = new SelectedDirections();
 	
 	
 	Entity(int x, int y, int maxSpeed, int accel) {
@@ -204,6 +204,8 @@ public abstract class Entity {
 			}
 			
 			
+//			i feel like there is probably a better way to determine what direction we are colliding in, probably by checking if we are colliding with the neighboring blocks but idk ive already coded this and it works
+			
 			if (isPastXBoundary && (!wasPastXBoundary || wasTouchingXBoundary) && wasPastYBoundary) {
 				// have to invert the horizontal sign because the screen's coordinates increase in the directions v> but it makes the most sense to set game.Direction.UP and RIGHT be positive (ie. ^>) inside the setTrue method so the vertical already is inverted, but because of the way the checks are set up and stuff we need both to be inverted
 				collisionDirections.setTrue(-xDirection, 0);
@@ -214,7 +216,14 @@ public abstract class Entity {
 //			this is the case where it is colliding with a tile with no neighbors and it collides from both directions so it could be interpreted as either direction
 //			the 'switch1And0' is to check to see if we are colliding with either of the tiles beside the one being checked
 			} else if (!collisions.getBool(switch1And0(relativeYIndex), relativeXIndex) && !collisions.getBool(relativeYIndex, switch1And0(relativeXIndex))) {
-				collisionDirections.setTrue(0, yDirection); // -xDirection would also work here, its arbitrary
+
+//				we collide with the side that has more velocity bc it makes it so you can get through a gap that is exactly the entity's size easier
+//				it also just makes more sense intuitively while playing
+				if (Math.abs(xVel) > Math.abs(yVel)) {
+					collisionDirections.setTrue(-xDirection, 0);
+				} else {
+					collisionDirections.setTrue(0, yDirection);
+				}
 			}
 		}
 		

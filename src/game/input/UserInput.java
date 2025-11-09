@@ -1,6 +1,7 @@
 package game.input;
 
-import game.Direction;
+import render.Panel;
+import util.Direction;
 import game.SelectedDirections;
 
 import java.awt.*;
@@ -12,6 +13,7 @@ import java.util.function.Supplier;
 
 public class UserInput implements KeyListener, MouseListener {
 	private boolean spacebar = false;
+	private boolean escapeKey = false;
 	
 	private SelectedDirections accelerating = new SelectedDirections();
 	
@@ -19,11 +21,24 @@ public class UserInput implements KeyListener, MouseListener {
 	
 	private Supplier<Point> mouseCoordGetter;
 	
-	public UserInput(Supplier<Point> mouseCoordGetter) {
+	private static UserInput userInput;
+	
+	private UserInput(Supplier<Point> mouseCoordGetter) {
 		this.mouseCoordGetter = mouseCoordGetter;
 	}
 	
 	
+//	this is kinda the singleton pattern ig, i think it works here but i kinda used it just cause this is what they were talking about in class
+	public static void init(Panel panel) {
+		if (userInput != null) {
+			throw new IllegalStateException("cannot call init if UserInput is already initialized");
+		}
+		
+		UserInput.userInput = new UserInput(panel::getMousePosition);
+		panel.addMouseListener(userInput);
+		panel.addKeyListener(userInput);
+		
+	}
 	
 	
 	@Override
@@ -53,6 +68,9 @@ public class UserInput implements KeyListener, MouseListener {
 		if (e.getKeyCode() == 32) { // spacebar
 			spacebar = true;
 		}
+		if (e.getKeyCode() == 27) { // escapeKey
+			escapeKey = true;
+		}
 	}
 //	arrow keys
 //	up 38
@@ -79,6 +97,9 @@ public class UserInput implements KeyListener, MouseListener {
 		}
 		if (e.getKeyCode() == 32) { // spacebar
 			spacebar = false;
+		}
+		if (e.getKeyCode() == 27) { // escapeKey
+			escapeKey = false;
 		}
 	}
 	
@@ -132,9 +153,14 @@ public class UserInput implements KeyListener, MouseListener {
 	
 	
 	
-	public InputState getInputState() {
-		mouse.setMousePos(mouseCoordGetter.get());
-		return new InputState(accelerating, spacebar, mouse);
+	public static InputState getInputState() {
+		if (userInput == null) {
+			throw new IllegalStateException("cannot get InputState as UserInput has not been initialized");
+		}
+		
+		
+		userInput.mouse.setMousePos(userInput.mouseCoordGetter.get());
+		return new InputState(userInput.accelerating, userInput.spacebar, userInput.escapeKey, userInput.mouse);
 	}
 	
 }

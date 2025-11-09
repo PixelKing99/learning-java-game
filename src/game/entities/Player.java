@@ -1,6 +1,6 @@
 package game.entities;
 
-import game.Direction;
+import util.Direction;
 import game.SelectedDirections;
 import saves.Map;
 

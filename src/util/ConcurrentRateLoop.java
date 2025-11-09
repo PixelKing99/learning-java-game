@@ -1,19 +1,19 @@
 package util;
 
-public class ConcurrentRateLoop implements Runnable {
+public class ConcurrentRateLoop<T extends Runnable> implements Runnable {
 	private int loopsPerSecond;
-	private double actualLoopsPerSecond = 0;
 	private int availableTime;
 	private long prevStartOfCode = System.currentTimeMillis();
 	private PassedTimeCache loopSpeedCache;
-	private Runnable runnable;
-	private String threadName;
+	public final T runnable;
 	private long sleepTime;
 	private boolean shouldLoop = true;
+	private final Thread thread;
+	private boolean pause = true;
 	
 	
 	
-	public ConcurrentRateLoop(int loopsPerSecond, Runnable run, String threadName) {
+	public ConcurrentRateLoop(int loopsPerSecond, T run, String threadName) {
 		this.loopsPerSecond = loopsPerSecond;
 		
 //		stores the last 'loopsPerSecond' loop times to calculate the actual LPS
@@ -27,12 +27,9 @@ public class ConcurrentRateLoop implements Runnable {
 		this.runnable = run;
 		
 		
-		this.threadName = threadName;
-		
-		Thread thread = new Thread(this, this.threadName);
+		thread = new Thread(this, threadName);
 		thread.start();
 	}
-	
 	
 	
 	
@@ -69,32 +66,58 @@ public class ConcurrentRateLoop implements Runnable {
 		loopSpeedCache.add(startOfCode - prevStartOfCode);
 		
 		prevStartOfCode = startOfCode;
-		
-		
-		actualLoopsPerSecond = 1000 / loopSpeedCache.getAverage();
 	}
 	
-	
+	public double getActualLoopsPerSecond() {
+		return 1000 / loopSpeedCache.getAverage();
+	}
 	
 	
 	public String getDebugData() {
 //		should really just be returning LPS but im just using it for debugging rn
-		return String.format("%.1f", actualLoopsPerSecond) + "  " + availableTime + "  " + sleepTime;
+		return String.format("%.1f", getActualLoopsPerSecond()) + "  " + availableTime + "  " + sleepTime;
 	}
 	
 	
 	
-//	could be used to have some sort of "safe exit" or smthn but idk how to set that up and i cant be bothered to loop into it rn
+//	could be used to have some sort of "safe exit" or smthn but idk how to set that up and i cant be bothered to look into it rn
 	public void stopLoop() {
 		shouldLoop = false;
 	}
 	
+	
+	public void pause() {
+		synchronized (thread) {
+			pause = true;
+		}
+	}
+	
+	public void resume() {
+		synchronized (thread) {
+			pause = false;
+			thread.notifyAll();
+		}
+	}
 	
 	
 	
 	@Override
 	public void run() {
 		while (shouldLoop) {
+		
+//			have to wait() the thread here and not in the pause function otherwise the thread that calls pause() will wait
+			if (pause) {
+				loopSpeedCache.reset();
+				synchronized (thread) {
+					try {
+						thread.wait();
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			}
+			
+			
 			loop();
 		}
 	}

@@ -3,6 +3,8 @@ package render;
 import game.Server;
 import game.input.UserInput;
 import render.Render;
+import util.ConcurrentRateLoop;
+import util.DynamicString;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,32 +14,25 @@ import java.util.function.Supplier;
 public class Panel extends JPanel implements Runnable {
 	
 	private Render render;
-	private UserInput userInput;
 	
-	public Supplier<String> getFps;
-	public Supplier<String> getTps;
+	private ConcurrentRateLoop renderLoop;
 	
-	public Panel(Server server) {
+	public Panel(Render render) {
+		
+		this.render = render;
 		
 		setPreferredSize(new Dimension(700, 700));
 		setBackground(new Color(0, 0, 0));
 		setFocusable(true);
 		
 		
-		this.userInput = new UserInput(this::getMousePosition);
-		this.render = new Render(server, userInput, this);
+		renderLoop = new ConcurrentRateLoop<>(Render.DEFAULT_FPS, this, "renderThread"); // this could probably be in the main thread but idk
 		
-		
-		addKeyListener(userInput);
-		addMouseListener(userInput);
+		Frame.hud.add(new DynamicString("fps: ").add(renderLoop::getDebugData));
 	}
 	
-	
-	
-//	idk what a better name for this would be
-	public void initializePerformanceGetters(Supplier<String> getFps, Supplier<String> getTps) {
-		this.getFps = getFps;
-		this.getTps = getTps;
+	public void resume() {
+		renderLoop.resume();
 	}
 	
 
@@ -51,12 +46,9 @@ public class Panel extends JPanel implements Runnable {
 //	i might be completely wrong but if so i have no clue how this works
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		render.render(g);
+		render.render(g, getWidth(), getHeight());
 	}
 	
-	public UserInput getUserInput() {
-		return userInput;
-	}
 	
 	@Override
 	public void run() {

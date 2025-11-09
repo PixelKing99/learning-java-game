@@ -1,5 +1,7 @@
 package game;
 
+import util.Direction;
+
 import java.util.HashMap;
 
 public class SelectedDirections {
@@ -25,7 +27,7 @@ public class SelectedDirections {
 	private static Direction intsToDirection(int horizontal, int vertical) {
 		
 		if (Math.abs(horizontal) + Math.abs(vertical) != 1) {
-			throw new IllegalArgumentException("one arguement should be 0 and the other +/- 1");
+			throw new IllegalArgumentException("one argument should be 0 and the other +/- 1");
 		}
 		
 		switch (vertical) {
