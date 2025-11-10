@@ -34,8 +34,9 @@ public class Hud {
 			
 			Rectangle2D r = g.getFontMetrics().getStringBounds(s, g);
 			
-//			the way it renders currently theres a gap between each line of text even if their supposed to be back to back
+//			the way it renders currently theres a gap between each line of text even if they're numerically next to each other
 //			if i want to get rid of it i have to switch out r.getHeight for fontHeight and maybe some other stuff, but i think it looks kinda clean so ima keep it for now
+//			for determining where r.getY() should go and its sign and stuff i had to look at my code in Element.render so i should look back there if i forget how this works
 			g.setColor(new Color(150, 150, 150, 100));
 			g.fillRect(0, (spacing + fontHeight) * e.getKey(), (int) r.getWidth() + 5, (int) r.getHeight());
 			
