@@ -1,14 +1,10 @@
 package render;
 
-import game.Server;
-import game.input.UserInput;
-import render.Render;
 import util.ConcurrentRateLoop;
 import util.DynamicString;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.function.Supplier;
 
 
 public class Panel extends JPanel implements Runnable {

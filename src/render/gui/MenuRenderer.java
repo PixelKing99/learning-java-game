@@ -1,13 +1,9 @@
 package render.gui;
 
-import game.input.InputState;
 import game.input.UserInput;
-import render.Panel;
 import render.Renderer;
 
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
-import java.util.function.Supplier;
 
 public class MenuRenderer implements Renderer<MenuFrame> {
 	

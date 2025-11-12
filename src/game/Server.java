@@ -35,7 +35,6 @@ public class Server implements Runnable {
 	private Map gameMap;
 	
 	private Player player;
-	private UserInput userInput;
 	private ConcurrentRateLoop<Server> serverLoop;
 	
 	
