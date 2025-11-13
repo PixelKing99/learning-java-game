@@ -1,16 +1,16 @@
 package render;
 
 import game.*;
-import game.input.UserInput;
 import game.entities.EntityType;
-import render.game.GameFrame;
 import render.game.GameRenderer;
 import render.gui.*;
 import saves.Tile;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.HashMap;
+import java.util.function.Consumer;
 
 //	how should i do rendering stuff
 //		could have every potential distinct screen have its own renderer class (although ig all menus share one)
@@ -40,11 +40,13 @@ public class Render {
 	
 	
 	private static Screen currentScreen = Screen.MAIN_MENU;
-	private HashMap<Screen, Renderer<? extends Frame>> screenToRenderer = new HashMap<>();
+	private static Screen screenToSet;
+	private static HashMap<Screen, Renderer<? extends Frame>> screenToRenderer = new HashMap<>();
 	
 	
-	private Renderer<MenuFrame> mainMenuRenderer;
-	private Renderer<GameFrame> gameRenderer;
+	private static MenuRenderer mainMenuRenderer;
+	private static MenuRenderer worldSelectionRenderer;
+	private static GameRenderer gameRenderer;
 	
 	
 	
@@ -56,15 +58,23 @@ public class Render {
 		
 		entityTextures.put(EntityType.PLAYER, face);
 		entityTextures.put(EntityType.ZOMBIE, face);
+	}
+	
+	public void initializeRenderers() {
 
-
-		mainMenuRenderer = new MenuRenderer(MenuBuilder.getMainMenu(logo), MenuBuilder.getMainMenuBackgound(lava));
+		mainMenuRenderer = MenuBuilder.getMainMenu(logo, lava);
+		
+		worldSelectionRenderer = MenuBuilder.getWorldSelection(lava);
 		
 		gameRenderer = new GameRenderer(server, tileTextures, entityTextures);
 		
 		
 		screenToRenderer.put(Screen.MAIN_MENU, mainMenuRenderer);
 		screenToRenderer.put(Screen.GAME, gameRenderer);
+		screenToRenderer.put(Screen.WORLD_SELECTION, worldSelectionRenderer);
+		
+		
+		screenToRenderer.get(currentScreen).updateVisibility(true);
 	}
 	
 	
@@ -74,18 +84,43 @@ public class Render {
 	}
 	
 	
+	
+//	these screen setting methods are so complicated to make sure that the screen is only set once per click event
 	public static Runnable getScreenSetter(Screen screen) {
+		return getScreenSetter(screen, true);
+	}
+	
+	public static Runnable getScreenSetter(Screen screen, boolean requiresClick) {
 		return () -> {
-			if (screen.equals(Render.currentScreen)) {
-				throw new IllegalArgumentException("must change screen\ngiven: " + screen + "\ncurrent: " + Render.currentScreen);
-			}
-			Render.currentScreen = screen;
-			
-			
-			if (screen.equals(Screen.GAME)) {
-				server.resume();
+			if (requiresClick) {
+				screenToSet = screen;
 			} else {
-				server.pause();
+				setScreenToRender(screen);
+			}
+		};
+	}
+	
+	private static void setScreenToRender(Screen screen) {
+		if (screen.equals(Render.currentScreen)) {
+			throw new IllegalArgumentException("must change screen\ngiven: " + screen + "\ncurrent: " + Render.currentScreen);
+		}
+		screenToRenderer.get(currentScreen).updateVisibility(false);
+		Render.currentScreen = screen;
+		screenToRenderer.get(currentScreen).updateVisibility(true);
+		
+		
+		if (screen.equals(Screen.GAME)) {
+			server.resume();
+		} else {
+			server.pause();
+		}
+	}
+	
+	public static Consumer<MouseEvent> getClickCompletionListener() {
+		return (MouseEvent e) -> {
+			if (screenToSet != null) {
+				setScreenToRender(screenToSet);
+				screenToSet = null;
 			}
 		};
 	}

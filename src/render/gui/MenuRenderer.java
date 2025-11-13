@@ -34,7 +34,14 @@ public class MenuRenderer implements Renderer<MenuFrame> {
 		this.background = background;
 	}
 	
+	@Override
 	public void render(Graphics g, int width, int height) {
 		new MenuFrame(g, width, height, UserInput.getInputState(), menu, background);
+	}
+	
+	@Override
+	public void updateVisibility(boolean isVisible) {
+		menu.updateVisibility(isVisible);
+		background.updateVisibility(isVisible);
 	}
 }

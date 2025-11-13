@@ -18,7 +18,7 @@ public class GameRenderer implements Renderer<GameFrame> {
 	private HashMap<Tile, Image> tileTextures;
 	private HashMap<EntityType, Image> entityTextures;
 	
-	private Runnable goToMenu = Render.getScreenSetter(Screen.MAIN_MENU);
+	private Runnable goToMenu = Render.getScreenSetter(Screen.MAIN_MENU, false);
 	
 	public GameRenderer(Server server, HashMap<Tile, Image> tileTextures, HashMap<EntityType, Image> entityTextures) {
 		
@@ -63,5 +63,10 @@ public class GameRenderer implements Renderer<GameFrame> {
 			goToMenu.run();
 		}
 		
+	}
+	
+	@Override
+	public void updateVisibility(boolean isVisible) {
+//		dont really need anything here cause it doesnt have mouseListeners or anything
 	}
 }

@@ -26,7 +26,7 @@ public class App {
 		
 		UserInput.init(panel);
 		
-		
+		render.initializeRenderers();
 		
 		frame.add(panel);
 		frame.pack();
@@ -35,7 +35,7 @@ public class App {
 		
 //		by default the thread is paused so have to resume
 //		the server stays paused until starting the game
-		panel.resume();
+		panel.start();
 		
 		
 		

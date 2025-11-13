@@ -1,17 +1,12 @@
 package render.gui;
 
-import game.SelectedDirections;
 import game.input.InputState;
-import game.input.Mouse;
-import render.Screen;
+import game.input.UserInput;
 
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.font.FontRenderContext;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
-import java.util.EventListener;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -27,7 +22,17 @@ public class Element {
 	private UiColor color;
 	private UiColor outlineColor;
 	private int outlineWidth = 1;
-	private List<ActionListener> listeners = new LinkedList<>();
+	
+//	these are here to store the most recent value each of these so that listeners can use them (since their checks are not synced with each frame)
+	private int x;
+	private int y;
+	private int width;
+	private int height;
+	
+	
+	private boolean isVisible = false;
+	
+	
 	public Element() {
 	
 	}
@@ -83,20 +88,33 @@ public class Element {
 		return this;
 	}
 	
-	public Element addActionListener(ActionListener onClick) {
-		listeners.add(onClick);
-		return this;
-	}
-	
-	public Element addActionListener(Runnable onClick) {
-		listeners.add(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
+	public Element addMousePressListener(Runnable onClick) {
+		UserInput.addMousePressListener((MouseEvent e) -> {
+			if (!isVisible) {
+				return;
+			}
+//			button1 == left click
+			if (e.getButton() != MouseEvent.BUTTON1) {
+				return;
+			}
+			
+			boolean mouseOverElement = e.getX() >= x && e.getX() <= x + width && e.getY() >= y && e.getY() <= y + height;
+			if (mouseOverElement) {
 				onClick.run();
 			}
 		});
+		
 		return this;
 	}
+	
+	
+	/**	for checking if the user is clicking on an element so it doesnt register for an element which isnt being displayed
+	 * @param isVisible
+	 */
+	public void updateVisibility(boolean isVisible) {
+		this.isVisible = isVisible;
+	}
+	
 	
 	public void renderRepeatingImage(Graphics g, int x, int y, int width, int height) {
 		
@@ -140,11 +158,17 @@ public class Element {
 	
 	
 	public void render(Graphics g, int x, int y, int width, int height, InputState inputState) {
+//		instance attributes are for listeners to use since they arent synchronized with the frames
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
 		
-		boolean mouseOverPanel = inputState.mouse.x >= x && inputState.mouse.x <= x + width && inputState.mouse.y >= y && inputState.mouse.y <= y + height;
+		
+		boolean mouseOverElement = inputState.mouse.x >= x && inputState.mouse.x <= x + width && inputState.mouse.y >= y && inputState.mouse.y <= y + height;
 		
 		if (color != null) {
-			g.setColor(color.getColor(mouseOverPanel));
+			g.setColor(color.getColor(mouseOverElement));
 			g.fillRect(x, y, width, height);
 		}
 		
@@ -184,7 +208,7 @@ public class Element {
 //			g.setColor(new Color(255,0,0));
 //			g.fillRect((int) Math.round(newX), (int) Math.round(newY), (int) Math.round(rect.getWidth()), (int) Math.round(rect.getHeight()));
 			
-			g.setColor(messageColor.getColor(mouseOverPanel));
+			g.setColor(messageColor.getColor(mouseOverElement));
 			g.drawString(message, (int) Math.round(newX), (int) Math.round(newY - rect.getY()));
 		}
 		
@@ -193,17 +217,8 @@ public class Element {
 			Graphics2D g2d = (Graphics2D) g;
 			g2d.setStroke(new BasicStroke(outlineWidth));
 			
-			g2d.setColor(outlineColor.getColor(mouseOverPanel));
+			g2d.setColor(outlineColor.getColor(mouseOverElement));
 			g2d.drawRect(x, y+1, width-1, height-2);
-		}
-		
-//		running any action listeners if the element is clicked
-		if (inputState.mouse.left && !inputState.mouse.mouseOutsideWindow) {
-			if (inputState.mouse.x >= x && inputState.mouse.x <= x + width && inputState.mouse.y >= y && inputState.mouse.y <= y + height) {
-				for (ActionListener al : listeners) {
-					al.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "click"));
-				}
-			}
 		}
 		
 //		was using this to make sure text is centered

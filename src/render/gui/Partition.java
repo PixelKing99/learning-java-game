@@ -3,30 +3,33 @@ package render.gui;
 import game.input.InputState;
 
 import java.awt.*;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.function.Supplier;
 
-public class Partition extends Element {
-	private Element[] elements; // may have to make ArrayList but rn we'll make it fixed length
+//	all of the generics stuff in here is so fcked idk how bad of practice everything here is but i hope it doesnt cause issues later
+public class Partition<T extends Element> extends Element {
+	private T[] elements; // may have to make ArrayList but rn we'll make it fixed length
 	private int[] weights;
 	private int totalWeight;
 	
-	public Boolean splitVertically = true;
+	private Boolean splitVertically = true;
 	
 	public Partition(int size) {
-		init(size, Element::new);
+		init(size, () -> {return (T) new Element();});
 	}
 	
 	
-	public Partition(int size, Supplier<Element> defaultElementSupplier) {
+	public Partition(int size, Supplier<T> defaultElementSupplier) {
 		init(size, defaultElementSupplier);
 	}
 	
 	
 	
-	private void init(int size, Supplier<Element> defaultElementSupplier) {
+	private void init(int size, Supplier<T> defaultElementSupplier) {
 		
-		this.elements = new Element[size];
+		T[] elements = (T[]) Array.newInstance(defaultElementSupplier.get().getClass(), size);
+		this.elements = elements;
 		
 //		cannot use Array.fill cause it only assigns the reference and doesnt create a new object
 		for (int i = 0; i < size; i++) {
@@ -41,7 +44,7 @@ public class Partition extends Element {
 	
 	
 	
-	public Partition(Element[] elements) {
+	public Partition(T[] elements) {
 		this.elements = elements;
 		
 		this.weights = new int[elements.length];
@@ -52,7 +55,7 @@ public class Partition extends Element {
 	
 	
 	
-	public Element get(int index) {
+	public T get(int index) {
 		return elements[index];
 	}
 	
@@ -60,9 +63,9 @@ public class Partition extends Element {
 	
 //	the generics is so that it will the object it was set to without simplifying it to an Element
 //	ie. if set to a Partition it will return that partition so partition methods can be used on it, not just element methods
-	public <T extends Element> T set(int index, T element) {
-		elements[index] = element;
-		return (T) elements[index];
+	public <K extends Element> K set(int index, K element) {
+		elements[index] = (T) element;
+		return (K) elements[index];
 	}
 	
 	
@@ -83,6 +86,13 @@ public class Partition extends Element {
 	}
 	
 	
+	@Override
+	public void updateVisibility(boolean isVisible) {
+		super.updateVisibility(isVisible);
+		for (T element : elements) {
+			element.updateVisibility(isVisible);
+		}
+	}
 	
 	
 	@Override

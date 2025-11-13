@@ -27,7 +27,7 @@ public class Panel extends JPanel implements Runnable {
 		Hud.add(0, new DynamicString("fps: ").add(renderLoop::getDebugData));
 	}
 	
-	public void resume() {
+	public void start() {
 		renderLoop.resume();
 	}
 	

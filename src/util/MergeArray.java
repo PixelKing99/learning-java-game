@@ -16,6 +16,9 @@ public class MergeArray <T>{
 	public MergeArray(Function<Integer, T> arrayCreator) {
 		
 		componentType = arrayCreator.apply(0).getClass().getComponentType();
+		if (!componentType.isPrimitive()) {
+			throw new IllegalArgumentException("must be a primitive array");
+		}
 		
 		this.arrayCreator = arrayCreator;
 	}
@@ -43,7 +46,7 @@ public class MergeArray <T>{
 		}
 		
 //		creating and adding a one element array to 'arrays'
-		newLength += Array.getLength(1);
+		newLength += 1;
 		
 		T arr = arrayCreator.apply(1);
 		Array.set(arr, 0, element);

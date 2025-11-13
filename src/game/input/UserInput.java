@@ -1,14 +1,15 @@
 package game.input;
 
 import render.Panel;
+import render.Render;
 import util.Direction;
 import game.SelectedDirections;
 
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class UserInput implements KeyListener, MouseListener {
@@ -20,6 +21,9 @@ public class UserInput implements KeyListener, MouseListener {
 	private Mouse mouse = new Mouse();
 	
 	private Supplier<Point> mouseCoordGetter;
+	
+	private List<Consumer<MouseEvent>> mousePressListeners = new LinkedList<>();
+	private static Consumer<MouseEvent> mousePressCompletionListener = Render.getClickCompletionListener();
 	
 	private static UserInput userInput;
 	
@@ -117,11 +121,19 @@ public class UserInput implements KeyListener, MouseListener {
 	@Override
 	public void mousePressed(MouseEvent e) {
 		int button = e.getButton();
-		if (button == 1) {
+		if (button == MouseEvent.BUTTON1) {
 			mouse.left = true;
-		} else if (button == 3) {
+		} else if (button == MouseEvent.BUTTON3) {
 			mouse.right = true;
 		}
+		
+		for (Consumer<MouseEvent> a : mousePressListeners) {
+			a.accept(e);
+		}
+//		this exists to check if a button that switches screens is clicked so it doesnt switch screens until all listeners are checked
+//		since without this it could register a click on a button thats on the next screen in the same place,
+//		if it's listener was after the first one's in the array
+		mousePressCompletionListener.accept(e);
 	}
 	
 	
@@ -130,9 +142,9 @@ public class UserInput implements KeyListener, MouseListener {
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		int button = e.getButton();
-		if (button == 1) {
+		if (button == MouseEvent.BUTTON1) {
 			mouse.left = false;
-		} else if (button == 3) {
+		} else if (button == MouseEvent.BUTTON3) {
 			mouse.right = false;
 		}
 	}
@@ -151,6 +163,14 @@ public class UserInput implements KeyListener, MouseListener {
 	}
 	
 	
+//	dont really want to use MouseListener interface cause for the most part i only really care about mousePressed
+	public static void addMousePressListener(Consumer<MouseEvent> mouseListener) {
+		if (userInput == null) {
+			throw new IllegalStateException("cannot add MousePressListener as UserInput has not been initialized");
+		}
+		
+		userInput.mousePressListeners.add(mouseListener);
+	}
 	
 	
 	public static InputState getInputState() {
