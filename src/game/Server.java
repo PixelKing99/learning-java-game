@@ -41,11 +41,11 @@ public class Server implements Runnable {
 	
 	public Server() throws DataFormatException, IOException {
 		saveFile = loadSave();
-		gameMap = saveFile.getMap();
+		gameMap = saveFile.get(Map.class);
 	
 		player = new Player(100, 100);
 		Hud.add(3, new DynamicString("x: ").add(() -> {return player.getCoords().x + "";}).add("  y: ").add(() -> {return player.getCoords().y + "";}));
-		Hud.add(4, new DynamicString("xΔ: ").add(() -> {return player.getVelocity().x + "";}).add("  yΔ: ").add(() -> {return player.getVelocity().y + "";}));
+		Hud.add(4, new DynamicString("Δx: ").add(() -> {return player.getVelocity().x + "";}).add("  Δy: ").add(() -> {return player.getVelocity().y + "";}));
 		
 		
 		serverLoop = new ConcurrentRateLoop<>(Server.DEFAULT_TPS, this, "serverThread");
@@ -67,13 +67,16 @@ public class Server implements Runnable {
 	
 	
 	public Save loadSave() throws DataFormatException, IOException {
+		return loadSave("default");
+	}
+	public Save loadSave(String saveName) throws DataFormatException, IOException {
 		Save saveFile;
 		try {
-			saveFile = new Save("default");
+			saveFile = new Save(saveName);
 			
 		} catch (FileNotFoundException fnfe) {
 			
-			saveFile = new Save("default", new Map(Map.DEFAULT_MAP));
+			saveFile = new Save(saveName, new Map(Map.DEFAULT_MAP));
 		}
 		
 		return saveFile;

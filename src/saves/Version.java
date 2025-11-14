@@ -1,6 +1,6 @@
 package saves;
 
-public class Version implements Saveable {
+public class Version extends Saveable {
 	private final byte major;
 	private final byte minor;
 	private final byte patch;

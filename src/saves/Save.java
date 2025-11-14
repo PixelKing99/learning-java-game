@@ -3,12 +3,14 @@ package saves;
 import util.MergeArray;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.function.Function;
 import java.util.zip.DataFormatException;
 
 public class Save {
@@ -35,45 +37,27 @@ public class Save {
 //	}
 	
 	
-	
-	
-	
-	
-	
-	
-
-	public enum FileSegment {
-		MAP
-	}
-	
-	// holds the list of all saved class instances after loading/saving a file
-	List<Saveable> savedObjects;
-	// all of the constructor methods for each Saveable in savedObjects must be mapped in here bc Interfaces dont let you specify constructors which is annoying asf cause i dont want to have to use an abstract class cause it will be redundant
-	HashMap<FileSegment, Function<byte[], Saveable>> savedObjectsLoadMethods = new HashMap<>();
-
-
-	
 	public static final Version DEFUALT_VERSION = new Version((byte) 0, (byte) 1, (byte) 0);
 	public static final String WORLDS_FOLDER = ".\\worlds";
 	private String worldPath;
 	private String fileName;
 	private Version version;
-	private Map map;
 	
 	private static final byte[] ID_BYTES = {6, 15, 'G', 'M', 'A', (byte) 153};
 	
 	private static final int BUFFER_SIZE = 32; // kinda arbitrary, but should definitely make bigger, just want to keep small rn in case it breaks anything
 	
 	
-//	decided to use 2 bytes just cause then when checking a file, if it is broken, there is a lower chance of NEW_FILE_SEGMENT bytes randomly being in the correct spot
+	//	decided to use 2 bytes just cause then when checking a file, if it is broken, there is a lower chance of NEW_FILE_SEGMENT bytes randomly being in the correct spot
 	public static final byte[] NEW_FILE_SEGMENT = {(byte) 234, 10};
 	
+	final HashMap<Class<? extends Saveable>, Saveable> segments = new LinkedHashMap<>(1); // Linked to preserve order (otherwise the order segments are saved in the file could be random or smthn)
 	
 	
 	
 	//	this ones for loading an existing world
 	public Save(String fileName) throws DataFormatException, IOException {
-		updateLoadMethods();
+		updateSegmentMap();
 		updatePath(fileName);
 		
 		loadFile();
@@ -81,30 +65,27 @@ public class Save {
 	}
 	
 	
-	
-//	these 2 are for generating a new world file
+	//	these 2 are for generating a new world file
 	public Save(String fileName, Map map) throws IOException {
-		updateLoadMethods();
+		updateSegmentMap();
 		updatePath(fileName);
-		this.map = map;
+		segments.put(map.getClass(), map);
 		version = DEFUALT_VERSION;
 		saveNewWorld();
 	}
-
 	
 	
 	public Save(String fileName, Map map, Version version) throws IOException {
-		updateLoadMethods();
+		updateSegmentMap();
 		updatePath(fileName);
-		this.map = map;
+		segments.put(map.getClass(), map);
 		this.version = version;
 		saveNewWorld();
 	}
 	
-	
-	
-	private void updateLoadMethods() {
-		savedObjectsLoadMethods.put(FileSegment.MAP, Map::new);
+//	this is the only place new file segments need to be added
+	private void updateSegmentMap() {
+		segments.put(Map.class, null);
 	}
 	
 	
@@ -112,7 +93,6 @@ public class Save {
 		this.fileName = fileName;
 		this.worldPath = WORLDS_FOLDER + "\\" + fileName + ".idk";
 	}
-	
 	
 	
 	private void saveNewWorld() throws IOException {
@@ -129,7 +109,6 @@ public class Save {
 	}
 	
 	
-	
 	private byte[] intToBytes(int x) {
 		ByteBuffer buffer = ByteBuffer.allocate(4);
 		buffer.putInt(x);
@@ -137,12 +116,11 @@ public class Save {
 	}
 	
 	
-	
 	private byte[] generateBinary() {
-
+		
 		MergeArray<byte[]> binary = new MergeArray<>(byte[]::new);
-		
-		
+
+
 //		header
 //		fixed length, store data required for processing the file segments
 		binary.addArray(ID_BYTES);
@@ -150,15 +128,16 @@ public class Save {
 		
 		binary.addArray(version.getBinary());
 		binary.addArray(NEW_FILE_SEGMENT);
-		
-		
+
+
 //		file segments
-//		bulk of the data, dont affect how following data is processed
-		List<Saveable> fileSegments = new ArrayList<>();
-		fileSegments.add(map);
+//		bulk of the data, doesnt affect how following data is processed
+		for (Saveable segment : segments.values()) {
 		
-		
-		for (Saveable segment : fileSegments) {
+//			debug
+			if (segment == null) {
+				throw new IllegalStateException("a Saveable segment has not been initialized, this is a problem with the way your code is written\ncurrent state:\n"+ getStringOfSegmentMap());
+			}
 			
 			binary.addArray(intToBytes(segment.getBinary().length));
 			binary.addArray(segment.getBinary());
@@ -169,11 +148,10 @@ public class Save {
 	}
 	
 	
-	
 	private void writeToFile(byte[] data) throws IOException {
 		OutputStream outStream = new FileOutputStream(worldPath);
 		byte[] dataBuffer = new byte[BUFFER_SIZE];
-
+		
 		for (int i = 0; i < data.length; i += BUFFER_SIZE) {
 			
 			int writeAmount = Math.min(BUFFER_SIZE, data.length - i);
@@ -183,7 +161,6 @@ public class Save {
 			outStream.write(dataBuffer, 0, writeAmount);
 		}
 	}
-	
 	
 	
 	public static String[] getWorlds() {
@@ -197,33 +174,35 @@ public class Save {
 	}
 	
 	
-	
 	private void loadFile() throws DataFormatException, IOException {
 		
 		List<byte[]> binarySegments = loadFileSegments();
-
-
-//		should probably make into its own function
-		savedObjects = new ArrayList<>();
-		FileSegment[] fileSegments = FileSegment.values();
 		
+		Class<? extends Saveable>[] c = new Class[segments.size()];
+		
+		segments.keySet().toArray(c);
 		for (int i = 0; i < binarySegments.size(); i++) {
-			Function<byte[], Saveable> instantiationFunction = savedObjectsLoadMethods.get(fileSegments[i]);
 			
-			Saveable classInstance = instantiationFunction.apply(binarySegments.get(i));
-			savedObjects.add(classInstance);
+			try {
+				Constructor<? extends Saveable> segmentConstructor = c[i].getConstructor(byte[].class);
+				segments.put(c[i], segmentConstructor.newInstance(binarySegments.get(i)));
+				
+//				this shouldnt happen as long as Saveable classes are implemented correctly(?)
+			} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+				throw new RuntimeException("retrieving the constructor from the Saveable class '"+c[i].getName()+"' went wrong somehow\n" + e);
+			}
+			
 		}
-		
+
 //		if there was multiple segments being loaded i would define them to their respective attributes here
-		map = (Map) savedObjects.get(0);
+//		map = (Map) savedObjects.get(0);
 	}
-	
 	
 	
 	private List<byte[]> loadFileSegments() throws IOException, DataFormatException {
 		
 		InputStream stream = new FileInputStream(worldPath);
-		
+
 //		these are read outside of the loop because they affect how the rest of the data is processed
 		byte[] header = getFileSegment(stream, ID_BYTES.length);
 		checkIdBytes(header); // throws error if fails
@@ -234,8 +213,8 @@ public class Save {
 		
 		List<byte[]> fileSegments = new ArrayList<>();
 		
-		for (int i = 0; i < FileSegment.values().length; i++) {
-
+		for (int i = 0; i < segments.size(); i++) {
+			
 			int size = readSegmentSize(stream);
 			
 			fileSegments.add(getFileSegment(stream, size));
@@ -245,21 +224,19 @@ public class Save {
 	}
 	
 	
-	
-//	at the beginning of new fileSegment the first 4 bytes make up an int which is the size of the fileSegment so this just returns the value of those bytes
+	//	at the beginning of new fileSegment the first 4 bytes make up an int which is the size of the fileSegment so this just returns the value of those bytes
 	private int readSegmentSize(InputStream stream) throws IOException {
-
+		
 		byte[] buffer = new byte[4];
 		int bytesRead = stream.read(buffer);
 		
 		if (bytesRead != 4) {
 			throw new EOFException("less than the expected amount of data is present\nreceived: " + bytesRead + " bytes\nexpected: 4 bytes\n");
 		}
-
+		
 		ByteBuffer intBuffer = ByteBuffer.wrap(buffer);
 		return intBuffer.getInt();
 	}
-	
 	
 	
 	private byte[] getFileSegment(InputStream stream, int length) throws IOException, DataFormatException {
@@ -267,8 +244,8 @@ public class Save {
 		byte[] buffer;
 		MergeArray<byte[]> mergeFileSegment = new MergeArray<>(byte[]::new);
 		int bytesRead;
-		
-		
+
+
 //		i dont think adding a buffer here really does anything since all of the data is going into memory and staying there
 //		ig it shouldnt make things too much worse and if i come back and improve this or change/expand the functionality it might be useful to have it like this already
 		for (int i = 0; i < length; i += BUFFER_SIZE) {
@@ -330,13 +307,34 @@ public class Save {
 	}
 	
 	
-	
 	public Version getVersion() {
 		return version;
 	}
 	
-	public Map getMap() {
-		return map;
+	/**	returns the instance of a Saveable class that was loaded from the file
+	 * @param type the class that extends Saveable is stored in the file
+	 * @param <T>
+	 * @return the instance of the class
+	 */
+	public <T extends Saveable> T get(Class<T> type) {
+		T x = (T) segments.get(type);
+		if (x == null) {
+			throw new RuntimeException("error getting " + type.getName() + "\n" + getStringOfSegmentMap());
+		}
+		return x;
+	}
+	
+	private String getStringOfSegmentMap() {
+		StringBuilder s = new StringBuilder();
+		
+		Class[] keys = new Class[segments.size()];
+		segments.keySet().toArray(keys);
+		
+		for (int i = 0; i < segments.size(); i++) {
+			s.append("k: ").append(keys[i]).append("   v: ").append(segments.get(keys[i])).append("\n");
+		}
+		
+		return s.toString();
 	}
 	
 }

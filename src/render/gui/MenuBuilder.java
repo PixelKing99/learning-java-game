@@ -55,35 +55,41 @@ public class MenuBuilder {
 		Partition mainElement = new Partition(2);
 		mainElement.splitHorizontally();
 		
-		Partition<Partition> worldsHolder = new Partition<>(10, () -> {
-			Partition p = new Partition(3);
-			p.set(1,
-				new Element()
-					.setColor(new Color(0,0,0,100))
-					.setOutlineColor(
-						new UiColor(
-							new Color(0,0,0,0),
-							new Color(255,255,255))
-						)
-					.addMousePressListener(getScreenSetter(Screen.GAME))
-			);
-			p.splitHorizontally();
-			return p.setWeight(1, 18);
-		});
-		worldsHolder.splitHorizontally();
+		Partition<Partition> worldsHolder = new Partition<>(3);
+		worldsHolder.setWeight(1, 2);
+		worldsHolder.set(1,
+			new Partition<>(10, () -> {
+				Partition p = new Partition(3);
+				p.set(1,
+					new Element()
+						.setColor(new Color(0,0,0,100))
+						.setOutlineColor(
+							new UiColor(
+								new Color(0,0,0,0),
+								new Color(255,255,255))
+							)
+						.addMousePressListener(getScreenSetter(Screen.GAME))
+				);
+				p.splitHorizontally();
+				return p.setWeight(1, 18);
+			})
+		);
+		worldsHolder.<Partition>get(1).splitHorizontally();
 		
 		mainElement.setWeight(0,3);
 		mainElement.set(0, worldsHolder);
 		
 		String[] worlds = Save.getWorlds();
 		for (int i = 0; i < 10 && i < worlds.length; i++) {
-			Element curButton = worldsHolder.get(i).get(1);
+			Element curButton = worldsHolder.<Partition<Partition>>get(1).<Partition>get(i).get(1);
 			curButton.setMessage(worlds[i]);
 			String worldName = worlds[i];
 			curButton.addMousePressListener(() -> {
 				System.out.println("this should load the world " + worldName);
 			});
 		}
+		
+		
 		
 		return new MenuRenderer(mainElement, background);
 	}

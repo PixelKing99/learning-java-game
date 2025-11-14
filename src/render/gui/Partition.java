@@ -55,8 +55,8 @@ public class Partition<T extends Element> extends Element {
 	
 	
 	
-	public T get(int index) {
-		return elements[index];
+	public <K extends Element> K get(int index) {
+		return (K) elements[index];
 	}
 	
 	

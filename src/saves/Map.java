@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.zip.DataFormatException;
 
-public class Map implements Saveable {
+public class Map extends Saveable {
 	public static final Tile[][] DEFAULT_MAP = new Tile[][]
 	{{Tile.WALL, Tile.WALL, Tile.AIR, Tile.WALL, Tile.WALL},
 	{Tile.WALL, Tile.AIR, Tile.AIR, Tile.AIR, Tile.WALL},
@@ -35,7 +35,7 @@ public class Map implements Saveable {
 	}
 	
 	
-	
+	@Override
 	public byte[] getBinary() {
 		if (binary != null) {
 			return binary;
