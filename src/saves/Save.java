@@ -197,13 +197,10 @@ public class Save {
 				
 //				this shouldnt happen as long as Saveable classes are implemented correctly(?)
 			} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-				throw new RuntimeException("retrieving the constructor from the Saveable class '"+c[i].getName()+"' went wrong somehow\n" + e);
+				throw new RuntimeException("retrieving the constructor from the Saveable class '"+c[i].getName()+"' went wrong somehow\nnote: it will give a NoSuchMethodException if the constructor is not public\n" + e);
 			}
 			
 		}
-
-//		if there was multiple segments being loaded i would define them to their respective attributes here
-//		map = (Map) savedObjects.get(0);
 	}
 	
 	

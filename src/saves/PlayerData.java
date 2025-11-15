@@ -6,6 +6,7 @@ import util.MergeArray;
 import java.awt.*;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.zip.DataFormatException;
 
 import static saves.Save.SEPARATOR_BYTE;
 
@@ -16,11 +17,11 @@ public class PlayerData extends Saveable {
 	private Player[] players;
 	
 	
-	PlayerData(Player[] players) {
+	public PlayerData(Player[] players) {
 		this.players = players;
 	}
 	
-	PlayerData(byte[] bytes) {
+	public PlayerData(byte[] bytes) throws DataFormatException {
 		this.bytes = bytes;
 		this.players = bytesToPlayers(bytes);
 	}
@@ -56,7 +57,7 @@ public class PlayerData extends Saveable {
 		return data.getMergedArray();
 	}
 	
-	private Player[] bytesToPlayers(byte[] bytes) {
+	private Player[] bytesToPlayers(byte[] bytes) throws DataFormatException {
 		
 		byte[] intSlices = Arrays.copyOfRange(bytes, 0, 4);
 
@@ -64,13 +65,11 @@ public class PlayerData extends Saveable {
 		int playerCount = intBuffer.getInt();
 		Player[] players = new Player[playerCount];
 
-//		check to make sure all of the NEXT_LAYER chars are at the correct spot to prevent reading fked save files and make sure code works
+//		check to make sure all of the SEPARATOR_BYTE chars are at the correct spot to prevent reading fked save files and make sure code works
 //		should probably make the for loop more readable
 		for (int i = 4 + PLAYER_DATA_BYTES; i < bytes.length; i += PLAYER_DATA_BYTES + 1) {
 			if (bytes[i] != SEPARATOR_BYTE) {
-//				was a data format exception but im trying to use the constructor in a Consumer and it was not happy im finna kms java is so annoying
-//				theres probably a way to make a consumer that is able to throw an error but idk
-				throw new RuntimeException("expected '" + SEPARATOR_BYTE + "'\ngot '" + bytes[i] + "'\nat index '" + i + "'");
+				throw new DataFormatException("expected '" + SEPARATOR_BYTE + "'\ngot '" + bytes[i] + "'\nat index '" + i + "'");
 			}
 		}
 		

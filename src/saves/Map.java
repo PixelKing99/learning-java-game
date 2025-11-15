@@ -40,7 +40,7 @@ public class Map extends Saveable {
 	
 	
 	
-	public Map(byte[] binary) {
+	public Map(byte[] binary) throws DataFormatException {
 		this.binary = binary;
 		map = bytesToMap(binary);
 	}
@@ -103,7 +103,7 @@ public class Map extends Saveable {
 		return data.getMergedArray();
 	}
 	
-	private Tile[][] bytesToMap(byte[] data) {
+	private Tile[][] bytesToMap(byte[] data) throws DataFormatException {
 		Tile[] tiles = Tile.values();
 		
 		byte[] intSlices = Arrays.copyOfRange(data, 0, MAP_DIMS_BYTES + SPAWN_BYTES);
@@ -121,9 +121,7 @@ public class Map extends Saveable {
 //		should probably make the for loop more readable
 		for (int i = MAP_DIMS_BYTES + SPAWN_BYTES + mapWidth; i < data.length; i += mapWidth + 1) {
 			if (data[i] != SEPARATOR_BYTE) {
-//				was a data format exception but im trying to use the constructor in a Consumer and it was not happy im finna kms java is so annoying
-//				theres probably a way to make a consumer that is able to throw an error but idk
-				throw new RuntimeException("expected separator byte '" + SEPARATOR_BYTE + "'\ngot '" + data[i] + "'\nat index '" + i + "'");
+				throw new DataFormatException("expected separator byte '" + SEPARATOR_BYTE + "'\ngot '" + data[i] + "'\nat index '" + i + "'");
 			}
 		}
 		

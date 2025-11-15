@@ -3,6 +3,9 @@ package saves;
 
 public abstract class Saveable  {
 	
+	/**	make sure to make public or else stuff will break
+	 * @param bytes
+	 */
 	Saveable(byte[] bytes) {}
 	
 	/**
