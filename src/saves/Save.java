@@ -1,5 +1,6 @@
 package saves;
 
+import game.entities.Player;
 import util.MergeArray;
 
 import java.io.*;
@@ -51,6 +52,9 @@ public class Save {
 	//	decided to use 2 bytes just cause then when checking a file, if it is broken, there is a lower chance of NEW_FILE_SEGMENT bytes randomly being in the correct spot
 	public static final byte[] NEW_FILE_SEGMENT = {(byte) 234, 10};
 	
+//	just a byte that can be used to separate data inside file segments for error checking, ie separate elements of a list
+	public static final byte SEPARATOR_BYTE = 0;
+	
 	final HashMap<Class<? extends Saveable>, Saveable> segments = new LinkedHashMap<>(1); // Linked to preserve order (otherwise the order segments are saved in the file could be random or smthn)
 	
 	
@@ -66,10 +70,12 @@ public class Save {
 	
 	
 	//	these 2 are for generating a new world file
+//	prolly need to do like a factory pattern or smthn, cause i dont want to have to create every possible constructor combo, but idk what the specifics of that even is and i cant be bothered rn
 	public Save(String fileName, Map map) throws IOException {
 		updateSegmentMap();
 		updatePath(fileName);
 		segments.put(map.getClass(), map);
+		segments.put(PlayerData.class, new PlayerData(new Player[]{new Player(150,150)}));
 		version = DEFUALT_VERSION;
 		saveNewWorld();
 	}
@@ -79,6 +85,7 @@ public class Save {
 		updateSegmentMap();
 		updatePath(fileName);
 		segments.put(map.getClass(), map);
+		segments.put(PlayerData.class, new PlayerData(new Player[]{new Player(150,150)}));
 		this.version = version;
 		saveNewWorld();
 	}
@@ -86,6 +93,7 @@ public class Save {
 //	this is the only place new file segments need to be added
 	private void updateSegmentMap() {
 		segments.put(Map.class, null);
+		segments.put(PlayerData.class, null);
 	}
 	
 	
@@ -109,7 +117,7 @@ public class Save {
 	}
 	
 	
-	private byte[] intToBytes(int x) {
+	public static byte[] intToBytes(int x) {
 		ByteBuffer buffer = ByteBuffer.allocate(4);
 		buffer.putInt(x);
 		return buffer.array();

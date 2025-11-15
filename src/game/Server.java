@@ -8,6 +8,7 @@ import render.Hud;
 import render.Render;
 import render.Screen;
 import saves.Map;
+import saves.PlayerData;
 import saves.Save;
 import util.ConcurrentRateLoop;
 import util.DynamicString;
@@ -35,6 +36,7 @@ public class Server implements Runnable {
 	private Map gameMap;
 	
 	private Player player;
+	private PlayerData playerData;
 	private ConcurrentRateLoop<Server> serverLoop;
 	
 	
@@ -42,8 +44,17 @@ public class Server implements Runnable {
 	public Server() throws DataFormatException, IOException {
 		saveFile = loadSave();
 		gameMap = saveFile.get(Map.class);
-	
-		player = new Player(100, 100);
+		playerData = saveFile.get(PlayerData.class);
+		for (int i = 0; i < playerData.getPlayerCount(); i++) {
+			if (playerData.getIndex(i).ID == Player.DEFAULT_ID) {
+				player = playerData.getIndex(i);
+				break;
+			}
+		}
+		if (player == null) {
+			player = new Player(gameMap.getSpawn().x, gameMap.getSpawn().y, Player.DEFAULT_ID);
+		}
+
 		Hud.add(3, new DynamicString("x: ").add(() -> {return player.getCoords().x + "";}).add("  y: ").add(() -> {return player.getCoords().y + "";}));
 		Hud.add(4, new DynamicString("Δx: ").add(() -> {return player.getVelocity().x + "";}).add("  Δy: ").add(() -> {return player.getVelocity().y + "";}));
 		
