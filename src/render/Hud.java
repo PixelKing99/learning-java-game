@@ -20,6 +20,13 @@ public class Hud {
 		hud.put(index, dynamicString);
 	}
 	
+	public static void remove(int index) {
+		if (!hud.containsKey(index)) {
+			throw new IllegalArgumentException("cannot remove index that is not assigned");
+		}
+		hud.remove(index);
+	}
+	
 	public static void render(Graphics g) {
 		
 		Font font = new Font(null);

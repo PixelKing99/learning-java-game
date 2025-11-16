@@ -13,18 +13,16 @@ import static game.Server.TILE_SIZE;
 
 public class DebugFrame extends Frame {
 	public final GameFrame gameFrame;
-	public final Server server;
 	
 	public final Player player;
 	public final int imageSize;
 	
 
-	public DebugFrame(Graphics g, int width, int height, InputState inputState, Server server, GameFrame gameFrame) {
+	public DebugFrame(Graphics g, int width, int height, InputState inputState, Player player, GameFrame gameFrame) {
 		super(g, width, height, inputState);
-		this.server = server;
 		this.gameFrame = gameFrame;
 		
-		this.player = this.server.getPlayer();
+		this.player = player;
 		this.imageSize = this.gameFrame.imageSize;
 	}
 

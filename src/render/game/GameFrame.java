@@ -33,14 +33,14 @@ public class GameFrame extends Frame {
 	
 	
 	
-	public GameFrame(Graphics g, int width, int height, InputState inputState, Server server, HashMap<Tile, Image> tileTextures, HashMap<EntityType, Image> entityTextures) {
+	public GameFrame(Graphics g, int width, int height, InputState inputState, Player player, Map map, HashMap<Tile, Image> tileTextures, HashMap<EntityType, Image> entityTextures) {
 		super(g, width, height, inputState);
 		
 		this.tileTextures = tileTextures;
 		this.entityTextures = entityTextures;
 		
-		this.map = server.getMap();
-		this.player = server.getPlayer();
+		this.map = map;
+		this.player = player;
 		
 		this.playerCoord = player.getCoords();
 		this.playerIndex = player.getIndexes();

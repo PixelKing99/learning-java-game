@@ -1,10 +1,14 @@
 package render.gui;
 
+import game.Server;
+import render.Render;
 import render.Screen;
 import saves.Save;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.function.Supplier;
+import java.util.zip.DataFormatException;
 
 import static render.Render.getScreenSetter;
 
@@ -13,6 +17,8 @@ public class MenuBuilder {
 	//		Supplier<Element> menuDefault = () -> new Element().setOutlineColor(new Color(100,0,0));
 	private static final Supplier<Element> menuDefault = () -> new Element();
 	private static final Supplier<Element> buttonDefault = () -> new Element().setColor(new UiColor(new Color(30, 30, 30, 180), new Color(30, 30, 30, 220)));
+	
+	private static final Runnable setScreenToGame = getScreenSetter(Screen.GAME);
 	
 	
 //	not exactly the greatest to have to pass the image as a parameter but at least then i can keep this static, should probably make a better solution some time tho
@@ -68,7 +74,6 @@ public class MenuBuilder {
 								new Color(0,0,0,0),
 								new Color(255,255,255))
 							)
-						.addMousePressListener(getScreenSetter(Screen.GAME))
 				);
 				p.splitHorizontally();
 				return p.setWeight(1, 18);
@@ -85,7 +90,15 @@ public class MenuBuilder {
 			curButton.setMessage(worlds[i]);
 			String worldName = worlds[i];
 			curButton.addMousePressListener(() -> {
-				System.out.println("this should load the world " + worldName);
+				try {
+					Server.start(worldName);
+					Render.initializeWorld();
+					setScreenToGame.run();
+				} catch (DataFormatException e) {
+					throw new RuntimeException("the worlds file is incorrectly formatted\n" + e);
+				} catch (IOException e) {
+					throw new RuntimeException("something went wrong while loading the world\n" + e);
+				}
 			});
 		}
 		

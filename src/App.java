@@ -17,11 +17,9 @@ public class App {
 		frame.setLocationRelativeTo(null);
 		frame.setResizable(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-	
-		Server server = new Server();
 		
-		Render render = new Render(server);
+		
+		Render render = new Render();
 		Panel panel = new Panel(render);
 		
 		UserInput.init(panel);

@@ -8,10 +8,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.file.FileAlreadyExistsException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 import java.util.zip.DataFormatException;
 
 public class Save {
@@ -174,11 +171,20 @@ public class Save {
 	public static String[] getWorlds() {
 		
 		String[] worlds = new File(WORLDS_FOLDER).list();
-		for (String world : worlds) {
-			System.out.println(world);
+		
+		LinkedList validWorlds = new LinkedList<String>();
+		
+		for (int i = 0; i < worlds.length; i++) {
+			if (worlds[i].endsWith(".idk")) {
+				validWorlds.add(worlds[i].substring(0,worlds[i].length()-4));
+			}
+			
+			System.out.println(worlds[i]);
+			
 		}
 		
-		return worlds;
+		String[] newArr = new String[validWorlds.size()];
+		return (String[]) validWorlds.toArray(newArr);
 	}
 	
 	

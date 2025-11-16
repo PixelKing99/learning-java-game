@@ -35,28 +35,19 @@ public class Server implements Runnable {
 	private Save saveFile;
 	private Map gameMap;
 	
-	private Player player;
 	private PlayerData playerData;
 	private ConcurrentRateLoop<Server> serverLoop;
 	
+	private static Server server;
 	
 	
-	public Server() throws DataFormatException, IOException {
-		saveFile = loadSave();
+	
+	private Server(String saveName) throws DataFormatException, IOException {
+		saveFile = loadSave(saveName);
+		
 		gameMap = saveFile.get(Map.class);
+		
 		playerData = saveFile.get(PlayerData.class);
-		for (int i = 0; i < playerData.getPlayerCount(); i++) {
-			if (playerData.getIndex(i).ID == Player.DEFAULT_ID) {
-				player = playerData.getIndex(i);
-				break;
-			}
-		}
-		if (player == null) {
-			player = new Player(gameMap.getSpawn().x, gameMap.getSpawn().y, Player.DEFAULT_ID);
-		}
-
-		Hud.add(3, new DynamicString("x: ").add(() -> {return player.getCoords().x + "";}).add("  y: ").add(() -> {return player.getCoords().y + "";}));
-		Hud.add(4, new DynamicString("Δx: ").add(() -> {return player.getVelocity().x + "";}).add("  Δy: ").add(() -> {return player.getVelocity().y + "";}));
 		
 		
 		serverLoop = new ConcurrentRateLoop<>(Server.DEFAULT_TPS, this, "serverThread");
@@ -65,22 +56,39 @@ public class Server implements Runnable {
 	}
 	
 	
-	
-	public void pause() {
-		serverLoop.pause();
+	public static void start(String saveName) throws DataFormatException, IOException {
+		if (server != null) {
+			throw new IllegalStateException("server has already been started");
+		}
+		server = new Server(saveName);
 	}
 	
-	public void resume() {
-		serverLoop.resume();
+	public static void stop() {
+		if (server == null) {
+			throw new IllegalStateException("the server is not running");
+		}
+		Hud.remove(1); // removes the tps display from the hud
+		server.serverLoop.stopLoop();
+		server = null;
+	}
+	
+	
+	public static boolean isRunning() {
+		return server != null;
+	}
+	
+	
+	public static void pause() {
+		server.serverLoop.pause();
+	}
+	
+	public static void resume() {
+		server.serverLoop.resume();
 	}
 	
 	
 	
-	
-	public Save loadSave() throws DataFormatException, IOException {
-		return loadSave("default");
-	}
-	public Save loadSave(String saveName) throws DataFormatException, IOException {
+	private Save loadSave(String saveName) throws DataFormatException, IOException {
 		Save saveFile;
 		try {
 			saveFile = new Save(saveName);
@@ -95,17 +103,21 @@ public class Server implements Runnable {
 	
 	
 	
-	
+//	cant actually be run outside Server since the constructor is private and this isnt static
 	@Override
 	public void run() {
 		tick();
 	}
 	
-	public void tick() {
-
+	private void tick() {
 //		the main tick logic
+
 		InputState inputState = UserInput.getInputState();
-		player.tick(inputState.accelerating, gameMap);
+		
+//		the game isnt anywhere near multiplayer but ill just make it like this ig
+		for (int i = 0; i < playerData.getPlayerCount(); i++) {
+			playerData.getIndex(i).tick(inputState.accelerating, gameMap);
+		}
 		
 	}
 	
@@ -123,11 +135,25 @@ public class Server implements Runnable {
 	
 	
 	
-	public Map getMap() {
-		return gameMap;
+	public static Map getMap() {
+		return server.gameMap;
 	}
 	
-	public Player getPlayer() {
+	
+//	this should only really be used called once by the client but i havent actually made a client separate from the server so idrc if i call it multiple times
+	public static Player getPlayer(int id) {
+		Player player = null;
+		
+		for (int i = 0; i < server.playerData.getPlayerCount(); i++) {
+			if (server.playerData.getIndex(i).ID == id) {
+				player = server.playerData.getIndex(i);
+				break;
+			}
+		}
+		
+		if (player == null) {
+			player = new Player(server.gameMap.getSpawn().x, server.gameMap.getSpawn().y, Player.DEFAULT_ID);
+		}
 		return player;
 	}
 	

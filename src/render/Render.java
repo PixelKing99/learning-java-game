@@ -33,10 +33,9 @@ public class Render {
 	private final Image logo = new ImageIcon(getClass().getResource("/resources/logo.png")).getImage();
 	
 	
-	private HashMap<Tile, Image> tileTextures = new HashMap<>();
-	private HashMap<EntityType, Image> entityTextures = new HashMap<>();
+	private static HashMap<Tile, Image> tileTextures = new HashMap<>();
+	private static HashMap<EntityType, Image> entityTextures = new HashMap<>();
 	public static final int DEFAULT_FPS = 60;
-	private static Server server;
 	
 	
 	private static Screen currentScreen = Screen.MAIN_MENU;
@@ -50,8 +49,7 @@ public class Render {
 	
 	
 	
-	public Render(Server server) {
-		Render.server = server;
+	public Render() {
 		
 		tileTextures.put(Tile.WALL, pog);
 		tileTextures.put(Tile.LAVA, lava);
@@ -66,15 +64,17 @@ public class Render {
 		
 		worldSelectionRenderer = MenuBuilder.getWorldSelection(lava);
 		
-		gameRenderer = new GameRenderer(server, tileTextures, entityTextures);
-		
 		
 		screenToRenderer.put(Screen.MAIN_MENU, mainMenuRenderer);
-		screenToRenderer.put(Screen.GAME, gameRenderer);
 		screenToRenderer.put(Screen.WORLD_SELECTION, worldSelectionRenderer);
 		
 		
 		screenToRenderer.get(currentScreen).updateVisibility(true);
+	}
+	
+	public static void initializeWorld() {
+		gameRenderer = new GameRenderer(tileTextures, entityTextures);
+		screenToRenderer.put(Screen.GAME, gameRenderer);
 	}
 	
 	
@@ -100,7 +100,10 @@ public class Render {
 		};
 	}
 	
-	private static void setScreenToRender(Screen screen) {
+	/**	should only be used if there is no interaction with UI involved with changing screens
+	 * @param screen
+	 */
+	public static void setScreenToRender(Screen screen) {
 		if (screen.equals(Render.currentScreen)) {
 			throw new IllegalArgumentException("must change screen\ngiven: " + screen + "\ncurrent: " + Render.currentScreen);
 		}
@@ -110,9 +113,9 @@ public class Render {
 		
 		
 		if (screen.equals(Screen.GAME)) {
-			server.resume();
-		} else {
-			server.pause();
+			Server.resume();
+		} else if (Server.isRunning()) {
+			Server.pause();
 		}
 	}
 	
