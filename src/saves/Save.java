@@ -8,6 +8,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.InvalidPathException;
 import java.util.*;
 import java.util.zip.DataFormatException;
 
@@ -36,7 +37,10 @@ public class Save {
 	
 	
 	public static final Version DEFUALT_VERSION = new Version((byte) 0, (byte) 1, (byte) 0);
-	public static final String WORLDS_FOLDER = ".\\worlds";
+
+    public static final String DEFAULT_WORLDS_FOLDER = "./worlds";
+    public static final String WORLDS_FOLDER = getWorldsFolder();
+
 	private String worldPath;
 	private String fileName;
 	private Version version;
@@ -98,8 +102,8 @@ public class Save {
 		this.fileName = fileName;
 		this.worldPath = WORLDS_FOLDER + "\\" + fileName + ".idk";
 	}
-	
-	
+
+
 	private void saveNewWorld() throws IOException {
 		
 		File newWorld = new File(worldPath);
@@ -151,8 +155,8 @@ public class Save {
 		
 		return binary.getMergedArray();
 	}
-	
-	
+
+
 	private void writeToFile(byte[] data) throws IOException {
 		OutputStream outStream = new FileOutputStream(worldPath);
 		byte[] dataBuffer = new byte[BUFFER_SIZE];
@@ -166,10 +170,20 @@ public class Save {
 			outStream.write(dataBuffer, 0, writeAmount);
 		}
 	}
-	
-	
+
+    public static String getWorldsFolder() {
+        File folder = new File(DEFAULT_WORLDS_FOLDER);
+
+        if (!folder.exists() || !folder.isDirectory()) {
+            throw new InvalidPathException(DEFAULT_WORLDS_FOLDER, "cant find worlds folder at " + DEFAULT_WORLDS_FOLDER + "\nabsolute path:" + folder.getAbsolutePath());
+        }
+
+        return DEFAULT_WORLDS_FOLDER;
+    }
+
+
 	public static String[] getWorlds() {
-		
+
 		String[] worlds = new File(WORLDS_FOLDER).list();
 		
 		LinkedList validWorlds = new LinkedList<String>();
