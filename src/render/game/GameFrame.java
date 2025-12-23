@@ -1,11 +1,11 @@
 package render.game;
 
-import game.Server;
 import game.entities.Player;
 import game.input.InputState;
 import game.entities.EntityType;
 import render.Frame;
-import saves.Map;
+import render.Textures;
+import saves.GameMap;
 import saves.Tile;
 
 import java.awt.*;
@@ -18,11 +18,7 @@ public class GameFrame extends Frame {
 	public static final int FRAME_SIDELENGTH_IN_BLOCKS = 10;
 	
 	
-	public final HashMap<Tile, Image> tileTextures;
-	public final HashMap<EntityType, Image> entityTextures;
-	
-	
-	public final Map map;
+	public final GameMap gameMap;
 	public final Player player;
 	public final Point playerCoord;
 	public final Point playerIndex;
@@ -33,13 +29,10 @@ public class GameFrame extends Frame {
 	
 	
 	
-	public GameFrame(Graphics g, int width, int height, InputState inputState, Player player, Map map, HashMap<Tile, Image> tileTextures, HashMap<EntityType, Image> entityTextures) {
+	public GameFrame(Graphics g, int width, int height, InputState inputState, Player player, GameMap gameMap) {
 		super(g, width, height, inputState);
 		
-		this.tileTextures = tileTextures;
-		this.entityTextures = entityTextures;
-		
-		this.map = map;
+		this.gameMap = gameMap;
 		this.player = player;
 		
 		this.playerCoord = player.getCoords();
@@ -58,11 +51,11 @@ public class GameFrame extends Frame {
 	
 	public void drawMap() {
 		
-		for (int i = 0; i < map.getLength(); i++) {
-			for (int j = 0; j < map.getInnerLength(); j++) {
+		for (int i = 0; i < gameMap.getLength(); i++) {
+			for (int j = 0; j < gameMap.getInnerLength(); j++) {
 				
-				if (map.get(i, j) != Tile.AIR) {
-					drawImage(tileTextures.get(map.get(i, j)), j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE);
+				if (gameMap.get(i, j) != Tile.AIR) {
+					drawImage(Textures.get(gameMap.get(i, j)), j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE);
 				}
 			}
 		}
@@ -72,7 +65,7 @@ public class GameFrame extends Frame {
 	
 	
 	public void drawPlayer() {
-		drawImage(entityTextures.get(EntityType.PLAYER), playerCoord, TILE_SIZE);
+		drawImage(Textures.get(EntityType.PLAYER), playerCoord, TILE_SIZE);
 	}
 	
 	

@@ -3,7 +3,7 @@ package game.entities;
 import util.Direction;
 import game.SelectedDirections;
 import game.Server;
-import saves.Map;
+import saves.GameMap;
 import saves.Tile;
 
 import java.awt.*;
@@ -59,7 +59,7 @@ public abstract class Entity {
 		this.accel = accel;
 	}
 	
-	protected void updatePosition(Map map) {
+	protected void updatePosition(GameMap gameMap) {
 
 		xIndex = getIndex(x);
 		yIndex = getIndex(y);
@@ -71,7 +71,7 @@ public abstract class Entity {
 		newYIndex = getIndex(newY);
 		
 		collisionDirections = new SelectedDirections();
-		CollisionTiles collisionTiles = findCollisionTiles(map);
+		CollisionTiles collisionTiles = findCollisionTiles(gameMap);
 		findCollisionDirections(collisionTiles);
 		
 		
@@ -86,7 +86,7 @@ public abstract class Entity {
 	
 	
 	
-	private CollisionTiles findCollisionTiles(Map map) {
+	private CollisionTiles findCollisionTiles(GameMap gameMap) {
 		
 		
 		boolean overlapRight = newX > newXIndex * Server.TILE_SIZE;
@@ -95,16 +95,16 @@ public abstract class Entity {
 		CollisionTiles collisions = new CollisionTiles();
 		
 		
-		updateCollisions(map, collisions, 0, 0);
+		updateCollisions(gameMap, collisions, 0, 0);
 		
 		if (overlapRight) {
-			updateCollisions(map, collisions, 0, 1);
+			updateCollisions(gameMap, collisions, 0, 1);
 		}
 		if (overlapDown) {
-			updateCollisions(map, collisions, 1, 0);
+			updateCollisions(gameMap, collisions, 1, 0);
 		}
 		if (overlapRight && overlapDown) {
-			updateCollisions(map, collisions, 1, 1);
+			updateCollisions(gameMap, collisions, 1, 1);
 		}
 		return collisions;
 	}
@@ -112,9 +112,9 @@ public abstract class Entity {
 	
 	
 	
-	private void updateCollisions(Map map, CollisionTiles collisions, int yIndexOffset, int xIndexOffset) {
+	private void updateCollisions(GameMap gameMap, CollisionTiles collisions, int yIndexOffset, int xIndexOffset) {
 		
-		if (checkTile(map, newXIndex + xIndexOffset, newYIndex + yIndexOffset)) {
+		if (checkTile(gameMap, newXIndex + xIndexOffset, newYIndex + yIndexOffset)) {
 			collisions.setTrue(yIndexOffset, xIndexOffset, newXIndex + xIndexOffset, newYIndex + yIndexOffset);
 		}
 	}
@@ -122,12 +122,12 @@ public abstract class Entity {
 	
 	
 	
-	private boolean checkTile(Map map, int xIndex, int yIndex) {
+	private boolean checkTile(GameMap gameMap, int xIndex, int yIndex) {
 		
-		boolean yValid = yIndex < map.getLength() && yIndex >= 0;
-		boolean validIndex = yValid && xIndex < map.getInnerLength() && xIndex >= 0;
+		boolean yValid = yIndex < gameMap.getLength() && yIndex >= 0;
+		boolean validIndex = yValid && xIndex < gameMap.getInnerLength() && xIndex >= 0;
 		
-		return validIndex && map.get(yIndex, xIndex) == Tile.WALL;
+		return validIndex && gameMap.get(yIndex, xIndex) == Tile.WALL;
 	}
 	
 	

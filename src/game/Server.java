@@ -3,11 +3,8 @@ package game;
 import game.entities.Player;
 import game.input.InputState;
 import game.input.UserInput;
-import render.Frame;
 import render.Hud;
-import render.Render;
-import render.Screen;
-import saves.Map;
+import saves.GameMap;
 import saves.PlayerData;
 import saves.Save;
 import util.ConcurrentRateLoop;
@@ -33,7 +30,7 @@ public class Server implements Runnable {
 //	make saves use a folder - maybe
 	
 	private Save saveFile;
-	private Map gameMap;
+	private GameMap gameMap;
 	
 	private PlayerData playerData;
 	private ConcurrentRateLoop<Server> serverLoop;
@@ -45,7 +42,7 @@ public class Server implements Runnable {
 	private Server(String saveName) throws DataFormatException, IOException {
 		saveFile = loadSave(saveName);
 		
-		gameMap = saveFile.get(Map.class);
+		gameMap = saveFile.get(GameMap.class);
 		
 		playerData = saveFile.get(PlayerData.class);
 		
@@ -95,7 +92,7 @@ public class Server implements Runnable {
 			
 		} catch (FileNotFoundException fnfe) {
 			
-			saveFile = new Save(saveName, new Map(Map.DEFAULT_MAP));
+			saveFile = new Save(saveName, new GameMap(GameMap.DEFAULT_MAP));
 		}
 		
 		return saveFile;
@@ -135,7 +132,7 @@ public class Server implements Runnable {
 	
 	
 	
-	public static Map getMap() {
+	public static GameMap getMap() {
 		return server.gameMap;
 	}
 	

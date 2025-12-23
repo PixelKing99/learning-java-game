@@ -10,7 +10,7 @@ import java.util.zip.DataFormatException;
 
 import static saves.Save.SEPARATOR_BYTE;
 
-public class Map extends Saveable {
+public class GameMap extends Saveable {
 	public static final Tile[][] DEFAULT_MAP = new Tile[][]
 	{{Tile.WALL, Tile.WALL, Tile.AIR, Tile.WALL, Tile.WALL},
 	{Tile.WALL, Tile.AIR, Tile.AIR, Tile.AIR, Tile.WALL},
@@ -28,19 +28,19 @@ public class Map extends Saveable {
 	private Point spawnPoint;
 	private byte[] binary;
 	
-	public Map(Tile[][] map) {
+	public GameMap(Tile[][] map) {
 		this.map = map;
 		this.spawnPoint = DEFAULT_SPAWN;
 	}
 	
-	public Map(Tile[][] map, Point spawnPoint) {
+	public GameMap(Tile[][] map, Point spawnPoint) {
 		this.map = map;
 		this.spawnPoint = spawnPoint;
 	}
 	
 	
 	
-	public Map(byte[] binary) throws DataFormatException {
+	public GameMap(byte[] binary) throws DataFormatException {
 		this.binary = binary;
 		map = bytesToMap(binary);
 	}

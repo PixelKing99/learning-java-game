@@ -2,7 +2,7 @@ package game.entities;
 
 import util.Direction;
 import game.SelectedDirections;
-import saves.Map;
+import saves.GameMap;
 
 import static game.Server.DEFAULT_TPS;
 import static game.Server.TILE_SIZE;
@@ -25,9 +25,9 @@ public class Player extends Entity {
 		this.ID = id;
 	}
 	
-	public void tick(SelectedDirections accelDirections, Map map) {
+	public void tick(SelectedDirections accelDirections, GameMap gameMap) {
 		acceleratePlayer(accelDirections);
-		updatePosition(map);
+		updatePosition(gameMap);
 	}
 	
 	

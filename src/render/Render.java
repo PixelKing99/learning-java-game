@@ -23,26 +23,14 @@ import java.util.function.Consumer;
 
 public class Render {
 
-//	should probably make a separate class for all the image loading stuff so its easier to give a class access to an image
-	private final Image lava = new ImageIcon(getClass().getResource("/resources/lava.png")).getImage();
-	private final Image pog = new ImageIcon(getClass().getResource("/resources/pog.png")).getImage();
-	private final Image skull = new ImageIcon(getClass().getResource("/resources/skull.png")).getImage();
-	private final Image grass = new ImageIcon(getClass().getResource("/resources/grass.png")).getImage();
-	private final Image zombie = new ImageIcon(getClass().getResource("/resources/zombie.png")).getImage();
-	private final Image face = new ImageIcon(getClass().getResource("/resources/face.png")).getImage();
-	private final Image logo = new ImageIcon(getClass().getResource("/resources/logo.png")).getImage();
-	
-	
-	private static HashMap<Tile, Image> tileTextures = new HashMap<>();
-	private static HashMap<EntityType, Image> entityTextures = new HashMap<>();
 	public static final int DEFAULT_FPS = 60;
 	
 	
 	private static Screen currentScreen = Screen.MAIN_MENU;
 	private static Screen screenToSet;
-	private static HashMap<Screen, Renderer<? extends Frame>> screenToRenderer = new HashMap<>();
-	
-	
+	private static final HashMap<Screen, Renderer<? extends Frame>> screenToRenderer = new HashMap<>();
+
+
 	private static MenuRenderer mainMenuRenderer;
 	private static MenuRenderer worldSelectionRenderer;
 	private static GameRenderer gameRenderer;
@@ -50,19 +38,13 @@ public class Render {
 	
 	
 	public Render() {
-		
-		tileTextures.put(Tile.WALL, pog);
-		tileTextures.put(Tile.LAVA, lava);
-		
-		entityTextures.put(EntityType.PLAYER, face);
-		entityTextures.put(EntityType.ZOMBIE, face);
 	}
 	
 	public void initializeRenderers() {
 
-		mainMenuRenderer = MenuBuilder.getMainMenu(logo, lava);
+		mainMenuRenderer = new MainMenu();
 		
-		worldSelectionRenderer = MenuBuilder.getWorldSelection(lava);
+		worldSelectionRenderer = new WorldSelection();
 		
 		
 		screenToRenderer.put(Screen.MAIN_MENU, mainMenuRenderer);
@@ -73,7 +55,7 @@ public class Render {
 	}
 	
 	public static void initializeWorld() {
-		gameRenderer = new GameRenderer(tileTextures, entityTextures);
+		gameRenderer = new GameRenderer();
 		screenToRenderer.put(Screen.GAME, gameRenderer);
 	}
 	

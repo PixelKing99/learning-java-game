@@ -2,6 +2,8 @@ package render.gui;
 
 import game.input.InputState;
 import game.input.UserInput;
+import render.Texture;
+import render.Textures;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -16,7 +18,7 @@ public class Element {
 	
 	private String message;
 	private UiColor messageColor = new UiColor(new Color(255,255,255));
-	private Image image;
+	private Texture texture;
 	private boolean fitVertically = false;
 	private int imagesPerSide = 0;
 	private UiColor color;
@@ -51,13 +53,13 @@ public class Element {
 		return this;
 	}
 	
-	public Element setImage(Image image) {
-		this.image = image;
+	public Element setTexture(Texture texture) {
+		this.texture = texture;
 		return this;
 	}
 	
-	public Element setImage(Image image, boolean fitVertically, int imagesPerSide) {
-		this.image = image;
+	public Element setTexture(Texture texture, boolean fitVertically, int imagesPerSide) {
+        this.texture = texture;
 		this.fitVertically = fitVertically;
 		this.imagesPerSide = imagesPerSide;
 		return this;
@@ -116,7 +118,7 @@ public class Element {
 	}
 	
 	
-	public void renderRepeatingImage(Graphics g, int x, int y, int width, int height) {
+	public void renderRepeatingImage(Graphics g, Image image, int x, int y, int width, int height) {
 		
 		double imageSize;
 		BiConsumer<Integer, Integer> draw;
@@ -172,10 +174,12 @@ public class Element {
 			g.fillRect(x, y, width, height);
 		}
 		
-		if (image != null) {
+		if (texture != null) {
+
+            Image image = Textures.get(texture);
 			
 			if (imagesPerSide != 0) {
-				renderRepeatingImage(g, x, y, width, height);
+				renderRepeatingImage(g, image, x, y, width, height);
 			} else {
 //				renders the image as large as possible within the given element without stretching the image
 //				currently centers the image, may have to add options later for aligning it up/down and left/right

@@ -2,8 +2,13 @@ package render.gui;
 
 import game.input.UserInput;
 import render.Renderer;
+import render.Screen;
+import render.Texture;
 
 import java.awt.*;
+import java.util.function.Supplier;
+
+import static render.Render.getScreenSetter;
 
 public class MenuRenderer implements Renderer<MenuFrame> {
 	
@@ -25,16 +30,31 @@ public class MenuRenderer implements Renderer<MenuFrame> {
 //			button is an element that can have a highlight color and onclick has a callback function
 //			needs to be passed the mouse coords ig
 	
-	
-	private Element menu;
-	private Element background;
-	
-	public MenuRenderer(Element menu, Element background) {
-		this.menu = menu;
-		this.background = background;
-	}
-	
-	@Override
+    public static final Element DEFAULT_BACKGROUND = new Element().setTexture(Texture.LAVA, false, 10);
+
+    //		Supplier<Element> menuDefault = () -> new Element().setOutlineColor(new Color(100,0,0));
+    protected static final Supplier<Element> menuDefault = () -> new Element();
+    protected static final Supplier<Element> buttonDefault = () -> new Element().setColor(new UiColor(new Color(30, 30, 30, 180), new Color(30, 30, 30, 220)));
+
+    protected static final Runnable setScreenToGame = getScreenSetter(Screen.GAME);
+
+	protected Element menu;
+	protected Element background = DEFAULT_BACKGROUND;
+
+
+//    could use these if i wanted to define like a simple menu without having to make a class for it but i dont need to rn
+
+//	public MenuRenderer(Element menu, Element background) {
+//		this.menu = menu;
+//		this.background = background;
+//	}
+//
+//	public MenuRenderer(Element menu) {
+//		this.menu = menu;
+//	}
+
+
+    @Override
 	public void render(Graphics g, int width, int height) {
 		new MenuFrame(g, width, height, UserInput.getInputState(), menu, background);
 	}

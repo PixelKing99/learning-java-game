@@ -72,20 +72,20 @@ public class Save {
 	
 	//	these 2 are for generating a new world file
 //	prolly need to do like a factory pattern or smthn, cause i dont want to have to create every possible constructor combo, but idk what the specifics of that even is and i cant be bothered rn
-	public Save(String fileName, Map map) throws IOException {
+	public Save(String fileName, GameMap gameMap) throws IOException {
 		updateSegmentMap();
 		updatePath(fileName);
-		segments.put(map.getClass(), map);
+		segments.put(gameMap.getClass(), gameMap);
 		segments.put(PlayerData.class, new PlayerData(new Player[]{new Player(150,150)}));
 		version = DEFUALT_VERSION;
 		saveNewWorld();
 	}
 	
 	
-	public Save(String fileName, Map map, Version version) throws IOException {
+	public Save(String fileName, GameMap gameMap, Version version) throws IOException {
 		updateSegmentMap();
 		updatePath(fileName);
-		segments.put(map.getClass(), map);
+		segments.put(gameMap.getClass(), gameMap);
 		segments.put(PlayerData.class, new PlayerData(new Player[]{new Player(150,150)}));
 		this.version = version;
 		saveNewWorld();
@@ -93,7 +93,7 @@ public class Save {
 	
 //	this is the only place new file segments need to be added
 	private void updateSegmentMap() {
-		segments.put(Map.class, null);
+		segments.put(GameMap.class, null);
 		segments.put(PlayerData.class, null);
 	}
 	
